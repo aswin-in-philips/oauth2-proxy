@@ -6,10 +6,8 @@ param(
     $ApiToken = "OWFkOWM0NGMtM2FlMy00ODFiLThjMTctM2I1OTdkMTY2MTQ2OmNlMGI4NmNhLWRjMzAtNGU0Yy04NTIwLWEzZDI5NDFlNjdkMg==",
     $ProxyHost = "apac.zscaler.philips.com",
     $ProxyPort = "10015",
+    $DockerImageName = "quay.io/oauth2-proxy/oauth2-proxy:latest"
     $ProxyIgnoreHosts = "blackduck.philips.com"
-    $REGISTRY = "quay.io/oauth2-proxy"
-    $DockerImageName = "$(REGISTRY)/oauth2-proxy:latest"
-
 )
 
 
