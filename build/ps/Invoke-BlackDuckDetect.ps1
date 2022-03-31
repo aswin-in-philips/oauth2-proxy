@@ -6,12 +6,11 @@ param(
     $ApiToken = "OWFkOWM0NGMtM2FlMy00ODFiLThjMTctM2I1OTdkMTY2MTQ2OmNlMGI4NmNhLWRjMzAtNGU0Yy04NTIwLWEzZDI5NDFlNjdkMg==",
     $ProxyHost = "apac.zscaler.philips.com",
     $ProxyPort = "10015",
-    $ProxyIgnoreHosts = "blackduck.philips.com"
-    $REGISTRY = "docker.na1.hsdp.io"
+    $REGISTRY = "docker.na1.hsdp.io",
+    $ProxyIgnoreHosts = "blackduck.philips.com",
     $DockerImageName = "$(REGISTRY)/edi-foundation-oauth2-proxy:latest"
 
-)
-
+    )
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 $detectScriptUrl = "https://detect.synopsys.com/detect.ps1"
