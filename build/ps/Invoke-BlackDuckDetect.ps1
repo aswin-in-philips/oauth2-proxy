@@ -8,7 +8,7 @@ param(
     $ProxyPort = "10015",
     $REGISTRY = "docker.na1.hsdp.io",
     $ProxyIgnoreHosts = "blackduck.philips.com",
-    $DockerImageName = "$(REGISTRY)/edi-foundation-oauth2-proxy:latest"
+    $DockerImageName = "$REGISTRY/edi-foundation-oauth2-proxy:latest"
 
     )
 
