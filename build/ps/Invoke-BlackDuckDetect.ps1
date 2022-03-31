@@ -7,8 +7,8 @@ param(
     $ProxyHost = "apac.zscaler.philips.com",
     $ProxyPort = "10015",
     $ProxyIgnoreHosts = "blackduck.philips.com"
-    $REGISTRY = "quay.io/oauth2-proxy"
-    $DockerImageName = "$(REGISTRY)/oauth2-proxy:latest"
+    $REGISTRY = "docker.na1.hsdp.io"
+    $DockerImageName = "$(REGISTRY)/edi-foundation-oauth2-proxy:latest"
 
 )
 
@@ -20,4 +20,4 @@ $detectScriptLocal = "$PSScriptRoot\detect.ps1"
 Invoke-WebRequest -Uri $detectScriptUrl -Method Get -OutFile $detectScriptLocal
 
 Import-Module $detectScriptLocal 
-Detect --detect.project.name=$ProjectName --detect.project.version.name=$ProjectVersionName --detect.docker.image=$DockerImageName --detect.source.path=$SourcePath --blackduck.url=$BlackduckUrl --blackduck.trust.cert=true --blackduck.api.token=$ApiToken --blackduck.proxy.host=$ProxyHost --blackduck.proxy.port=$ProxyPort --blackduck.proxy.ignored.hosts=$ProxyIgnoreHosts --detect.blackduck.signature.scanner.individual.file.matching=ALL --detect.detector.search.depth=6
+Detect --detect.project.name=$ProjectName --detect.project.version.name=$ProjectVersionName --detect.tools=DOCKER --detect.docker.image=$DockerImageName --detect.source.path=$SourcePath --blackduck.url=$BlackduckUrl --blackduck.trust.cert=true --blackduck.api.token=$ApiToken --blackduck.proxy.host=$ProxyHost --blackduck.proxy.port=$ProxyPort --blackduck.proxy.ignored.hosts=$ProxyIgnoreHosts --detect.blackduck.signature.scanner.individual.file.matching=ALL --detect.detector.search.depth=6
