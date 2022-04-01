@@ -1,29 +1,70 @@
-# This is a basic workflow to help you get started with Actions
+name: CI-Build
 
-name: Blackduck scan
-
-# Controls when the action will run. 
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
   push:
     branches: [ main ]
-
-  # Allows you to run this workflow manually from the Actions tab
+    paths-ignore:
+    - 'VERSION'
+    - '.bumpversion.cfg'
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
-jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    runs-on: builder_blr
+env:
+  HSDP_DOCKER_HOST: docker.na1.hsdp.io
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
+jobs:
+  Init:
+    runs-on: [self-hosted, research]
+    container:
+      image: docker.na1.hsdp.io/edi/build-env:master-45
+      credentials:
+        username: ${{ secrets.HSDP_DOCKER_USER }}
+        password: ${{ secrets.HSDP_DOCKER_PASSWORD }}
+    outputs:
+      branchName: ${{ steps.branch.outputs.branch_name }}
+      ciFullImageName: "${{ env.HSDP_DOCKER_HOST }}/edi/edi-foundation-oauth2-proxy:${{ steps.branch.outputs.branch_name }}-${{ github.run_number }}"
+      rcFullImageName: "${{ env.HSDP_DOCKER_HOST }}/edi/edi-foundation-oauth2-proxy:${{ steps.branch.outputs.branch_name }}-${{ github.run_number }}-rc"
+
     steps:
-      - name: checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
         with:
-          fetch-depth: 0
-          ref: main
-      - name: blackduck scan
-        run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\Build\PS\Invoke-BlackduckDetect.ps1 -SourcePath ${{ github.workspace }}
+         token: ${{ secrets.ADMIN_TOKEN }}
+
+      - name: Extract branch name
+        uses: vazco/github-actions-branch-name@v1
+        id: branch
+
+      - name: Bump version
+        if: github.ref == 'refs/heads/main'
+        run: |
+          bumpversion patch
+          new_version=`cat VERSION`
+          echo "New version is: $new_version"
+
+          git config --global user.name "CI Build"
+          git config --global user.email "ci.build@philips.com"
+          git commit -am "Bump version $new_version"
+          git push --force
+
+  BlackduckScan:
+    needs: [Init]
+    runs-on: [self-hosted, research]
+    container:
+      image: docker.na1.hsdp.io/edi/build-env:master-45
+      credentials:
+        username: ${{ secrets.HSDP_DOCKER_USER }}
+        password: ${{ secrets.HSDP_DOCKER_PASSWORD }}
+    env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Scan blackduck
+        run: |
+          pdt blackduck detect \
+                --workspace_path ${{ github.workspace }} \
+                --project_name 'SA_edifoundation-oauth2proxy' \
+                --project_version '1.0' \
+                --blackduck_host 'https://blackduck.philips.com' \
+                --blackduck_token ${{ secrets.BLACKDUCK_TOKEN }}
