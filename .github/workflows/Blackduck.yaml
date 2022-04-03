@@ -15,7 +15,7 @@ env:
 
 jobs:
   Init:
-    runs-on: [self-hosted, research]
+    runs-on: ubuntu-20.04
     container:
       image: docker.na1.hsdp.io/edi/build-env:master-45
       credentials:
@@ -49,7 +49,7 @@ jobs:
 
   BlackduckScan:
     needs: [Init]
-    runs-on: [self-hosted, research]
+    runs-on: ubuntu-20.04
     container:
       image: docker.na1.hsdp.io/edi/build-env:master-45
       credentials:
