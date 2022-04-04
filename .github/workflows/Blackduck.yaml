@@ -1,4 +1,4 @@
-name: CI-Build
+name: Blackduck
 
 on:
   push:
@@ -56,14 +56,3 @@ jobs:
 
       - name: blackduck scan
         run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\Build\PS\Invoke-BlackduckDetect.ps1 -SourcePath ${{ github.workspace }}
-
-
-  FortifyScan: 
-    needs: [Init]    
-    runs-on: self-hosted
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-  
-      - name: Fortify scan
-        run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\build\ps\Invoke-FortifyScan.ps1
