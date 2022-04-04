@@ -48,6 +48,7 @@ jobs:
           git push --force
 
   Blackduck:
+    needs: [Init]
     runs-on: builder_blr
     steps:
       - name: checkout
@@ -59,10 +60,10 @@ jobs:
 
   FortifyScan: 
     needs: [Init]    
-    name: Run Fortify Scan
-    uses: philips-internal/edi-reusable-workflows/.github/workflows/Fortify.yml@main
-    with:
-      application_name: 'edifoundation-oauth2proxy'
-      application_version: 'Main'
-    secrets:
-      token: '785de478-dc2d-4829-959c-ea5cb8cd1adc'
+    runs-on: self-hosted
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+  
+      - name: Fortify scan
+        run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\build\ps\Invoke-FortifyScan.ps1
