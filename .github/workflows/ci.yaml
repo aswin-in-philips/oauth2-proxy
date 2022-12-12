@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - 'edi-foundation-integration'
+      - 'token'
       # - $default-branch
     paths-ignore:
     - 'VERSION'
@@ -27,222 +27,222 @@ jobs:
         with:
          token: ${{ secrets.ADMIN_TOKEN }}
 
-      - name: Extract branch name
-        uses: vazco/github-actions-branch-name@v1
-        id: branch
+      # - name: Extract branch name
+      #   uses: vazco/github-actions-branch-name@v1
+      #   id: branch
 
-      - name: Bump version
-        if: github.ref == 'refs/heads/edi-foundation-integration'
-        run: |
-          sudo apt update
-          sudo apt install bumpversion
-          bumpversion patch
-          new_version=`cat VERSION`
-          echo "New version is: $new_version"
+      # - name: Bump version
+      #   if: github.ref == 'refs/heads/edi-foundation-integration'
+      #   run: |
+      #     sudo apt update
+      #     sudo apt install bumpversion
+      #     bumpversion patch
+      #     new_version=`cat VERSION`
+      #     echo "New version is: $new_version"
 
-          git config --global user.name "CI Build"
-          git config --global user.email "ci.build@philips.com"
-          git commit -am "Bump version $new_version"
-          git push --force
+      #     git config --global user.name "CI Build"
+      #     git config --global user.email "ci.build@philips.com"
+      #     git commit -am "Bump version $new_version"
+      #     git push --force
 
-  unit-test:
-    needs: [Init]
-    env:
-      COVER: true
-    runs-on: ubuntu-20.04
-    steps:
+  # unit-test:
+  #   needs: [Init]
+  #   env:
+  #     COVER: true
+  #   runs-on: ubuntu-20.04
+  #   steps:
 
-    - name: Check out code
-      uses: actions/checkout@v2
+  #   - name: Check out code
+  #     uses: actions/checkout@v2
 
-    - name: Set up Go 1.16
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.16.x
-      id: go
+  #   - name: Set up Go 1.16
+  #     uses: actions/setup-go@v2
+  #     with:
+  #       go-version: 1.16.x
+  #     id: go
 
-    - name: Get dependencies
-      run: |
-        curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.36.0
-        curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-        chmod +x ./cc-test-reporter
+  #   - name: Get dependencies
+  #     run: |
+  #       curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.36.0
+  #       curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  #       chmod +x ./cc-test-reporter
 
-    - name: Verify Code Generation
-      run: |
-        make verify-generate
+  #   - name: Verify Code Generation
+  #     run: |
+  #       make verify-generate
 
-    - name: Lint
-      run: |
-        make lint
+  #   - name: Lint
+  #     run: |
+  #       make lint
 
-    - name: Build
-      run: |
-        make build
+  #   - name: Build
+  #     run: |
+  #       make build
 
-    - name: Test
-      env:
-        CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
-      run: |
-        ./.github/workflows/test.sh
+  #   - name: Test
+  #     env:
+  #       CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+  #     run: |
+  #       ./.github/workflows/test.sh
 
-  Blackduck:
-    needs: [Init]
-    runs-on: builder_blr
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
+  # Blackduck:
+  #   needs: [Init]
+  #   runs-on: builder_blr
+  #   steps:
+  #     - name: checkout
+  #       uses: actions/checkout@v2
 
-      - name: blackduck scan
-        run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\Build\PS\Invoke-BlackduckDetect.ps1 -SourcePath ${{ github.workspace }}
+  #     - name: blackduck scan
+  #       run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\Build\PS\Invoke-BlackduckDetect.ps1 -SourcePath ${{ github.workspace }}
 
-  Fortify:
-    needs: [Init]
-    runs-on: builder_blr
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
+  # Fortify:
+  #   needs: [Init]
+  #   runs-on: builder_blr
+  #   steps:
+  #     - name: checkout
+  #       uses: actions/checkout@v2
         
-      - name: Fortify scan
-        run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\build\ps\Invoke-FortifyScan.ps1
+  #     - name: Fortify scan
+  #       run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\build\ps\Invoke-FortifyScan.ps1
 
-  Build:
-    needs: [Init]
-    runs-on: ubuntu-20.04
-    outputs:
-      oauth2proxyPRTag: ${{ steps.setVariables.outputs.alphaTag }}
-      oauth2proxyCITag: ${{ steps.setVariables.outputs.betaTag }}
-    steps:
-    - uses: actions/checkout@v2
+  # Build:
+  #   needs: [Init]
+  #   runs-on: ubuntu-20.04
+  #   outputs:
+  #     oauth2proxyPRTag: ${{ steps.setVariables.outputs.alphaTag }}
+  #     oauth2proxyCITag: ${{ steps.setVariables.outputs.betaTag }}
+  #   steps:
+  #   - uses: actions/checkout@v2
 
-    - name: Import Secrets
-      id: secrets
-      uses: hashicorp/vault-action@v2.3.1
-      with:
-        url: ${{ secrets.VAULT_HOST }}
-        method: approle
-        roleId: ${{ secrets.VAULT_ROLE_ID }}
-        secretId: ${{ secrets.VAULT_SECRET_ID }}
-        exportEnv: true
-        secrets: |
-          devops/data/docker-repos/hsdp-edi endPoint | HSDP_DOCKER_REGISTRY ;
-          devops/data/docker-repos/hsdp-edi user | HSDP_DOCKER_USER ;
-          devops/data/docker-repos/hsdp-edi password | HSDP_DOCKER_PASSWORD ;
-          devops/data/github/users/sal-devops token | GITHUB_TOKEN ;
+  #   - name: Import Secrets
+  #     id: secrets
+  #     uses: hashicorp/vault-action@v2.3.1
+  #     with:
+  #       url: ${{ secrets.VAULT_HOST }}
+  #       method: approle
+  #       roleId: ${{ secrets.VAULT_ROLE_ID }}
+  #       secretId: ${{ secrets.VAULT_SECRET_ID }}
+  #       exportEnv: true
+  #       secrets: |
+  #         devops/data/docker-repos/hsdp-edi endPoint | HSDP_DOCKER_REGISTRY ;
+  #         devops/data/docker-repos/hsdp-edi user | HSDP_DOCKER_USER ;
+  #         devops/data/docker-repos/hsdp-edi password | HSDP_DOCKER_PASSWORD ;
+  #         devops/data/github/users/sal-devops token | GITHUB_TOKEN ;
 
-    - name: Extract branch name
-      uses: vazco/github-actions-branch-name@v1
-      id: branch
+  #   - name: Extract branch name
+  #     uses: vazco/github-actions-branch-name@v1
+  #     id: branch
 
-    - name: Set env variables
-      run: |
-        new_version=`cat VERSION`
-        alpha_tag="${new_version}-alpha"
-        beta_tag="${new_version}-beta"
-        echo "New version is: $new_version"
-        echo "VERSION=$new_version" >> "$GITHUB_ENV"
-        echo "CI_IMAGE=${{ env.HSDP_DOCKER_REGISTRY }}/edi-foundation-oauth2-proxy:${beta_tag}" >> "$GITHUB_ENV"
-        echo "PR_IMAGE=${{ env.HSDP_DOCKER_REGISTRY }}/edi-foundation-oauth2-proxy:${alpha_tag}" >> "$GITHUB_ENV"
-        echo "CI_LATEST_IMAGE=${{ env.HSDP_DOCKER_REGISTRY }}/edi-foundation-oauth2-proxy:latest" >> "$GITHUB_ENV"
-        echo "alphaTag=${alpha_tag}" >> $GITHUB_OUTPUT
-        echo "betaTag=${beta_tag}" >> $GITHUB_OUTPUT
+  #   - name: Set env variables
+  #     run: |
+  #       new_version=`cat VERSION`
+  #       alpha_tag="${new_version}-alpha"
+  #       beta_tag="${new_version}-beta"
+  #       echo "New version is: $new_version"
+  #       echo "VERSION=$new_version" >> "$GITHUB_ENV"
+  #       echo "CI_IMAGE=${{ env.HSDP_DOCKER_REGISTRY }}/edi-foundation-oauth2-proxy:${beta_tag}" >> "$GITHUB_ENV"
+  #       echo "PR_IMAGE=${{ env.HSDP_DOCKER_REGISTRY }}/edi-foundation-oauth2-proxy:${alpha_tag}" >> "$GITHUB_ENV"
+  #       echo "CI_LATEST_IMAGE=${{ env.HSDP_DOCKER_REGISTRY }}/edi-foundation-oauth2-proxy:latest" >> "$GITHUB_ENV"
+  #       echo "alphaTag=${alpha_tag}" >> $GITHUB_OUTPUT
+  #       echo "betaTag=${beta_tag}" >> $GITHUB_OUTPUT
 
-    - name: Docker Build
-      run: |
-        make docker
+  #   - name: Docker Build
+  #     run: |
+  #       make docker
         
-    - name: Docker login
-      run: |
-          docker login --username '${{ secrets.DOCKER_USER }}' --password '${{ secrets.DOCKER_PSWD }}'  '${{ secrets.DOCKER_REPO }}' 
+  #   - name: Docker login
+  #     run: |
+  #         docker login --username '${{ secrets.DOCKER_USER }}' --password '${{ secrets.DOCKER_PSWD }}'  '${{ secrets.DOCKER_REPO }}' 
         
-    - name: Docker tag 
-      run: |
-          docker tag '${{ secrets.DOCKER_REPO }}'/oauth2-proxy:latest ${{ env.CI_IMAGE }}
-          docker tag ${{ env.CI_IMAGE }} ${{ env.PR_IMAGE }}
+  #   - name: Docker tag 
+  #     run: |
+  #         docker tag '${{ secrets.DOCKER_REPO }}'/oauth2-proxy:latest ${{ env.CI_IMAGE }}
+  #         docker tag ${{ env.CI_IMAGE }} ${{ env.PR_IMAGE }}
     
-    - name: PR Image Docker Push
-      if: github.event_name == 'pull_request'
-      run: |
-          docker push ${{ env.PR_IMAGE }}
+  #   - name: PR Image Docker Push
+  #     if: github.event_name == 'pull_request'
+  #     run: |
+  #         docker push ${{ env.PR_IMAGE }}
     
-    - name: Docker Push
-      if: github.ref == 'refs/heads/edi-foundation-integration'
-      run: |
-          docker tag ${{ env.CI_IMAGE }} ${{ env.CI_LATEST_IMAGE }}
-          docker push ${{ env.CI_LATEST_IMAGE }}
-          docker push ${{ env.CI_IMAGE }}
+  #   - name: Docker Push
+  #     if: github.ref == 'refs/heads/edi-foundation-integration'
+  #     run: |
+  #         docker tag ${{ env.CI_IMAGE }} ${{ env.CI_LATEST_IMAGE }}
+  #         docker push ${{ env.CI_LATEST_IMAGE }}
+  #         docker push ${{ env.CI_IMAGE }}
 
-  PR_Deploy_Test_HDS_AUTH_GATEWAY:
-    if: github.event_name == 'pull_request'
-    needs: [Build, Blackduck, Fortify, unit-test]
-    uses: ./.github/workflows/deploy-hds-auth-gateway.yaml
-    with:
-      OAUTH2_PROXY_IMAGE: ${{ needs.Build.outputs.envoyPRTag }}
-    secrets:
-      VAULT_HOST: ${{ secrets.VAULT_HOST }}
-      VAULT_ROLE_ID: ${{ secrets.VAULT_ROLE_ID }}
-      VAULT_SECRET_ID: ${{ secrets.VAULT_SECRET_ID }}
+  # PR_Deploy_Test_HDS_AUTH_GATEWAY:
+  #   if: github.event_name == 'pull_request'
+  #   needs: [Build, Blackduck, Fortify, unit-test]
+  #   uses: ./.github/workflows/deploy-hds-auth-gateway.yaml
+  #   with:
+  #     OAUTH2_PROXY_IMAGE: ${{ needs.Build.outputs.envoyPRTag }}
+  #   secrets:
+  #     VAULT_HOST: ${{ secrets.VAULT_HOST }}
+  #     VAULT_ROLE_ID: ${{ secrets.VAULT_ROLE_ID }}
+  #     VAULT_SECRET_ID: ${{ secrets.VAULT_SECRET_ID }}
 
-  CI_Deploy_Test_HDS_AUTH_GATEWAY:
-    if: github.ref == 'refs/heads/edi-foundation-integration'
-    needs: [Build, Blackduck, Fortify, unit-test]
-    uses: ./.github/workflows/api-gw-integrated-test.yaml
-    with:
-      OAUTH2_PROXY_IMAGE: ${{ needs.Build.outputs.envoyCITag }}
-    secrets:
-      VAULT_HOST: ${{ secrets.VAULT_HOST }}
-      VAULT_ROLE_ID: ${{ secrets.VAULT_ROLE_ID }}
-      VAULT_SECRET_ID: ${{ secrets.VAULT_SECRET_ID }}
+  # CI_Deploy_Test_HDS_AUTH_GATEWAY:
+  #   if: github.ref == 'refs/heads/edi-foundation-integration'
+  #   needs: [Build, Blackduck, Fortify, unit-test]
+  #   uses: ./.github/workflows/api-gw-integrated-test.yaml
+  #   with:
+  #     OAUTH2_PROXY_IMAGE: ${{ needs.Build.outputs.envoyCITag }}
+  #   secrets:
+  #     VAULT_HOST: ${{ secrets.VAULT_HOST }}
+  #     VAULT_ROLE_ID: ${{ secrets.VAULT_ROLE_ID }}
+  #     VAULT_SECRET_ID: ${{ secrets.VAULT_SECRET_ID }}
 
-  Promote_Version:
-    needs: [CI_Deploy_Test_HDS_AUTH_GATEWAY]
-    if: github.ref == 'refs/heads/edi-foundation-integration'
-    runs-on: ubuntu-20.04
-    outputs:
-      versionTag: ${{ steps.setVariables.outputs.versionTag }}
-    steps:
-      - uses: actions/checkout@v2
+  # Promote_Version:
+  #   needs: [CI_Deploy_Test_HDS_AUTH_GATEWAY]
+  #   if: github.ref == 'refs/heads/edi-foundation-integration'
+  #   runs-on: ubuntu-20.04
+  #   outputs:
+  #     versionTag: ${{ steps.setVariables.outputs.versionTag }}
+  #   steps:
+  #     - uses: actions/checkout@v2
 
-      - name: Import Secrets
-        id: secrets
-        uses: hashicorp/vault-action@v2.3.1
-        with:
-          url: ${{ secrets.VAULT_HOST }}
-          method: approle
-          roleId: ${{ secrets.VAULT_ROLE_ID }}
-          secretId: ${{ secrets.VAULT_SECRET_ID }}
-          exportEnv: true
-          secrets: |
-            devops/data/docker-repos/hsdp-edi endPoint | HSDP_DOCKER_REGISTRY ;
-            devops/data/docker-repos/hsdp-edi user | HSDP_DOCKER_USER ;
-            devops/data/docker-repos/hsdp-edi password | HSDP_DOCKER_PASSWORD ;
+  #     - name: Import Secrets
+  #       id: secrets
+  #       uses: hashicorp/vault-action@v2.3.1
+  #       with:
+  #         url: ${{ secrets.VAULT_HOST }}
+  #         method: approle
+  #         roleId: ${{ secrets.VAULT_ROLE_ID }}
+  #         secretId: ${{ secrets.VAULT_SECRET_ID }}
+  #         exportEnv: true
+  #         secrets: |
+  #           devops/data/docker-repos/hsdp-edi endPoint | HSDP_DOCKER_REGISTRY ;
+  #           devops/data/docker-repos/hsdp-edi user | HSDP_DOCKER_USER ;
+  #           devops/data/docker-repos/hsdp-edi password | HSDP_DOCKER_PASSWORD ;
             
-      - name: Set env variables
-        id: setVariables
-        run: |
-          new_version=`cat VERSION`
-          echo "New version is: $new_version"
-          echo "CI_IMAGE=${{ env.HSDP_DOCKER_REGISTRY }}/edi-foundation-oauth2-proxy:${new_version}-beta" >> "$GITHUB_ENV"
-          echo "RC_IMAGE=docker.na1.hsdp.io/edisp-releases/edi-foundation-oauth2-proxy:${new_version}-rc" >> "$GITHUB_ENV"
-          echo "versionTag=${new_version}-rc" >> $GITHUB_OUTPUT
-          echo "${new_version}-rc"
+  #     - name: Set env variables
+  #       id: setVariables
+  #       run: |
+  #         new_version=`cat VERSION`
+  #         echo "New version is: $new_version"
+  #         echo "CI_IMAGE=${{ env.HSDP_DOCKER_REGISTRY }}/edi-foundation-oauth2-proxy:${new_version}-beta" >> "$GITHUB_ENV"
+  #         echo "RC_IMAGE=docker.na1.hsdp.io/edisp-releases/edi-foundation-oauth2-proxy:${new_version}-rc" >> "$GITHUB_ENV"
+  #         echo "versionTag=${new_version}-rc" >> $GITHUB_OUTPUT
+  #         echo "${new_version}-rc"
         
-      - name: Docker login
-        run: |
-          docker login --username '${{ secrets.DOCKER_USER }}' --password '${{ secrets.DOCKER_PSWD }}'  '${{ secrets.DOCKER_REPO }}'
+  #     - name: Docker login
+  #       run: |
+  #         docker login --username '${{ secrets.DOCKER_USER }}' --password '${{ secrets.DOCKER_PSWD }}'  '${{ secrets.DOCKER_REPO }}'
       
-      - name: Docker Push
-        run: |
-          docker pull ${{ env.CI_IMAGE }}
-          docker tag ${{ env.CI_IMAGE }} ${{ env.RC_IMAGE }}
-          docker push ${{ env.RC_IMAGE }}
+  #     - name: Docker Push
+  #       run: |
+  #         docker pull ${{ env.CI_IMAGE }}
+  #         docker tag ${{ env.CI_IMAGE }} ${{ env.RC_IMAGE }}
+  #         docker push ${{ env.RC_IMAGE }}
 
-  Replace_OAuth2_Proxy_Tag_in_Terraform_API_Gateway:
-    needs: [Promote_Version]
-    if: github.ref == 'refs/heads/edi-foundation-integration'
-    uses: ./.github/workflows/update-oauth2-proxy-version-at-api-gw.yaml
-    with:
-      OAUTH2_PROXY_IMAGE: ${{ needs.Promote_Version.outputs.versionTag }}
-    secrets:
-      VAULT_HOST: ${{ secrets.VAULT_HOST }}
-      VAULT_ROLE_ID: ${{ secrets.VAULT_ROLE_ID }}
-      VAULT_SECRET_ID: ${{ secrets.VAULT_SECRET_ID }}
+  # Replace_OAuth2_Proxy_Tag_in_Terraform_API_Gateway:
+  #   needs: [Promote_Version]
+  #   if: github.ref == 'refs/heads/edi-foundation-integration'
+  #   uses: ./.github/workflows/update-oauth2-proxy-version-at-api-gw.yaml
+  #   with:
+  #     OAUTH2_PROXY_IMAGE: ${{ needs.Promote_Version.outputs.versionTag }}
+  #   secrets:
+  #     VAULT_HOST: ${{ secrets.VAULT_HOST }}
+  #     VAULT_ROLE_ID: ${{ secrets.VAULT_ROLE_ID }}
+  #     VAULT_SECRET_ID: ${{ secrets.VAULT_SECRET_ID }}
