@@ -52,6 +52,13 @@ Read the docs on our [Docs site](https://oauth2-proxy.github.io/oauth2-proxy/doc
 
 ![OAuth2 Proxy Architecture](https://cloud.githubusercontent.com/assets/45028/8027702/bd040b7a-0d6a-11e5-85b9-f8d953d04f39.png)
 
+### Configure OAuth Proxy Cookie as Session Cookie
+
+OAuth Proxy Cookie can be configured as session cookie by setting cookie expire time (**--cookie-expire**) as 0.
+
+This can also be set via environment variable: 
+ - OAUTH2_PROXY_COOKIE_EXPIRE = 0
+
 ## Getting Involved
 
 If you would like to reach out to the maintainers, come talk to us in the `#oauth2-proxy` channel in the [Gophers slack](http://gophers.slack.com/).
