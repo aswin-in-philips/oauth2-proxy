@@ -2,10 +2,12 @@ param(
     $FortifyProjectId = "edifoundation-oauth2proxy",
     $FortifyVersionId = "Main",
     $FortifyBuildId = "fortify_fl",
-    $FortifyFprPath = "$PSScriptRoot\$FortifyProjectId.$FortifyVersionId.fpr",
+    $FortifyFprPath = "$PSScriptRoot\$FortifyProjectId.fpr",
     $PublishURL = "https://fortify.philips.com/ssc",
-    $PublishAuthToken = "785de478-dc2d-4829-959c-ea5cb8cd1adc",
-    $RepositoryRoot = "$PSScriptRoot\..\..\"
+    [string]$PublishAuthToken,
+    $RepositoryRoot = "$PSScriptRoot\..\..\",
+    $Sourceanalyzer = "C:\Program Files\Fortify\Fortify_SCA_and_Apps_22.1.1\bin\sourceanalyzer.exe",
+    $FortifyClient = "C:\Program Files\Fortify\Fortify_SCA_and_Apps_22.1.1\bin\fortifyclient.bat"
 )
 
 function Invoke-VswhereDownload (
@@ -21,11 +23,13 @@ function Invoke-VswhereDownload (
 try {
     $RepositoryRoot = [System.IO.Path]::GetFullPath($RepositoryRoot)
 
+
     & sourceanalyzer -b $FortifyBuildId -clean -logfile "$PSScriptRoot\fortify-clean.txt"
 
-    & sourceanalyzer  -Xmx8G -b $FortifyBuildId "$RepositoryRoot\contrib"
+    & sourceanalyzer  -Xmx8G -b $FortifyBuildId -gopath $RepositoryRoot -goroot $RepositoryRoot "$RepositoryRoot\**\*.go"
     & sourceanalyzer  -b $FortifyBuildId -show-files 
-    & sourceanalyzer  -Xmx8G -b $FortifyBuildId  -Dcom.fortify.sca.Phase0HigherOrder.Languages=javascript,typescript -scan -f $FortifyFprPath -logfile "$PSScriptRoot\fortify-scan.txt"
+    #& sourceanalyzer  -Xmx8G -b $FortifyBuildId  -Dcom.fortify.sca.Phase0HigherOrder.Languages=go -scan -f $FortifyFprPath -logfile "$PSScriptRoot\fortify-scan.txt"
+    & sourceanalyzer  -Xmx8G -b $FortifyBuildId -logfile "$PSScriptRoot\fortify-scan.txt" -scan -f $FortifyFprPath
 
     #Upload fpr reports to fortify server
     Write-Output "Uploading '$FortifyFprPath' of '$FortifyProjectId' with version '$FortifyVersionId' to '$PublishURL'"

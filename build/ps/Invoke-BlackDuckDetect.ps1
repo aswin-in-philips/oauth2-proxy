@@ -3,7 +3,7 @@ param(
     $ProjectVersionName = "1.0",
     $SourcePath,
     $BlackduckUrl = "https://blackduck.philips.com/",
-    $ApiToken = "OWFkOWM0NGMtM2FlMy00ODFiLThjMTctM2I1OTdkMTY2MTQ2OmNlMGI4NmNhLWRjMzAtNGU0Yy04NTIwLWEzZDI5NDFlNjdkMg==",
+    $ApiToken,
     $ProxyHost = "apac.zscaler.philips.com",
     $ProxyPort = "10015",
     $ProxyIgnoreHosts = "blackduck.philips.com"

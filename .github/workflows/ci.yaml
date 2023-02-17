@@ -22,6 +22,8 @@ jobs:
   Init:
     needs: [Wokflow-Queue]
     runs-on: ubuntu-20.04
+    outputs:
+        Version: ${{ steps.setVariables.outputs.version }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -33,13 +35,14 @@ jobs:
 
       - name: Bump version
         if: github.ref == 'refs/heads/edi-foundation-integration'
+        id: setVariables
         run: |
           sudo apt update
           sudo apt install bumpversion
           bumpversion patch
           new_version=`cat VERSION`
           echo "New version is: $new_version"
-
+          echo "version=$new_version" >> $GITHUB_OUTPUT
           git config --global user.name "CI Build"
           git config --global user.email "ci.build@philips.com"
           git commit -am "Bump version $new_version"
@@ -93,23 +96,24 @@ jobs:
         uses: actions/checkout@v2
 
       - name: blackduck scan
-        run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\Build\PS\Invoke-BlackduckDetect.ps1 -SourcePath ${{ github.workspace }}
-
+        run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\Build\PS\Invoke-BlackduckDetect.ps1 -SourcePath ${{ github.workspace }} -ApiToken ${{ secrets.BLACKDUCK_TOKEN }}
+    
   Fortify:
     needs: [Init]
-    runs-on: builder_blr
+    runs-on: builder_blr_2
     steps:
       - name: checkout
         uses: actions/checkout@v2
         
       - name: Fortify scan
-        run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\build\ps\Invoke-FortifyScan.ps1
+        run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\build\ps\Invoke-FortifyScan.ps1 -PublishAuthToken ${{ secrets.FORTIFY_TOKEN }}
+  
 
   Build:
     needs: [Init]
     runs-on: ubuntu-20.04
     outputs:
-      oauth2proxyPRTag: ${{ steps.setVariables.outputs.alphaTag }}
+      oauth2proxyPRTag: ${{ steps.setVariables.outputs.prTag }}
       oauth2proxyCITag: ${{ steps.setVariables.outputs.betaTag }}
     steps:
     - uses: actions/checkout@v2
@@ -135,15 +139,14 @@ jobs:
 
     - name: Set env variables
       run: |
-        new_version=`cat VERSION`
-        alpha_tag="${new_version}-alpha"
+        new_version=${{ needs.Init.outputs.Version }}
+        pr_tag="PR-${{ github.run_id }}"
         beta_tag="${new_version}-beta"
         echo "New version is: $new_version"
         echo "VERSION=$new_version" >> "$GITHUB_ENV"
         echo "CI_IMAGE=${{ env.HSDP_DOCKER_REGISTRY }}/edi-foundation-oauth2-proxy:${beta_tag}" >> "$GITHUB_ENV"
-        echo "PR_IMAGE=${{ env.HSDP_DOCKER_REGISTRY }}/edi-foundation-oauth2-proxy:${alpha_tag}" >> "$GITHUB_ENV"
-        echo "CI_LATEST_IMAGE=${{ env.HSDP_DOCKER_REGISTRY }}/edi-foundation-oauth2-proxy:latest" >> "$GITHUB_ENV"
-        echo "alphaTag=${alpha_tag}" >> $GITHUB_OUTPUT
+        echo "PR_IMAGE=${{ env.HSDP_DOCKER_REGISTRY }}/edi-foundation-oauth2-proxy:${pr_tag}" >> "$GITHUB_ENV"
+        echo "prTag=${pr_tag}" >> $GITHUB_OUTPUT
         echo "betaTag=${beta_tag}" >> $GITHUB_OUTPUT
 
     - name: Docker Build
@@ -156,8 +159,7 @@ jobs:
         
     - name: Docker tag 
       run: |
-          docker tag '${{ secrets.DOCKER_REPO }}'/oauth2-proxy:latest ${{ env.CI_IMAGE }}
-          docker tag ${{ env.CI_IMAGE }} ${{ env.PR_IMAGE }}
+          docker tag '${{ secrets.DOCKER_REPO }}'/oauth2-proxy:latest ${{ env.PR_IMAGE }}
     
     - name: PR Image Docker Push
       if: github.event_name == 'pull_request'
@@ -167,8 +169,7 @@ jobs:
     - name: Docker Push
       if: github.ref == 'refs/heads/edi-foundation-integration'
       run: |
-          docker tag ${{ env.CI_IMAGE }} ${{ env.CI_LATEST_IMAGE }}
-          docker push ${{ env.CI_LATEST_IMAGE }}
+          docker tag ${{ env.PR_IMAGE }} ${{ env.CI_IMAGE }}
           docker push ${{ env.CI_IMAGE }}
 
   PR_Deploy_Test_HDS_AUTH_GATEWAY:
@@ -219,6 +220,9 @@ jobs:
       - name: Set env variables
         id: setVariables
         run: |
+          sudo apt update
+          sudo apt install bumpversion
+          bumpversion patch
           new_version=`cat VERSION`
           echo "New version is: $new_version"
           echo "CI_IMAGE=${{ env.HSDP_DOCKER_REGISTRY }}/edi-foundation-oauth2-proxy:${new_version}-beta" >> "$GITHUB_ENV"
