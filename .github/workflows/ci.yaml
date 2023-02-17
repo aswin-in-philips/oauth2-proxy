@@ -104,7 +104,7 @@ jobs:
           /bin/bash -c \
           "(cd /code && \
           /app/detect.sh \
-          --blackduck.url={https://blackduck.philips.com} \
+          --blackduck.url='https://blackduck.philips.com' \
           --blackduck.api.token=${{ secrets.BLACKDUCK_TOKEN }} \
           --blackduck.trust.cert=true \
           --detect.policy.check=true \
