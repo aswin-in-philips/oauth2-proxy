@@ -117,13 +117,13 @@ jobs:
         run: |
           go test -cover
 
-      # - name: SonarQube Scan
-      #   uses: sonarsource/sonarqube-scan-action@master
-      #   env:
-      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      #     SONAR_HOST_URL: https://sonarqube.ta.philips.com/
-      #   with:
-      #     projectBaseDir: ${{ github.workspace }}
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarqube.ta.philips.com/
+        with:
+          projectBaseDir: ${{ github.workspace }}
     
 
 
