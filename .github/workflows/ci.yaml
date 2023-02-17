@@ -90,13 +90,29 @@ jobs:
 
   BlackduckScan:
     #needs: [Init]
-    uses: philips-internal/edi-reusable-workflows/.github/workflows/Blackduck-js.yml@main
-    with:
-      project_name: 'SA_edifoundation-oauth2proxy'
-      project_version: '1.0'
-      hostname: 'https://blackduck.philips.com'
-    secrets:
-      blackduck_token: ${{ secrets.BLACKDUCK_TOKEN }}
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2.4.1
+
+      - name: Scan blackduck
+        run: |
+          docker run -v ${{ github.workspace}}:/code \
+          philipssoftware/blackduck:8.5 \
+          /bin/bash -c \
+          "(cd /code && \
+          /app/detect.sh \
+          --blackduck.url=https://blackduck.philips.com \
+          --blackduck.api.token=${{ secrets.BLACKDUCK_TOKEN }} \
+          --blackduck.trust.cert=true \
+          --detect.policy.check=true \
+          --detect.source.path=/code \
+          --detect.project.name=edifoundation-apigatewaytokenauthenticator \
+          --detect.project.version.name=1.0 \
+          --detect.blackduck.signature.scanner.individual.file.matching=ALL \
+          --detect.bom.aggregate.name={agregator})"
 
   Fortify:
     #needs: [Init]
