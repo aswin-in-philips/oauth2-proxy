@@ -104,25 +104,25 @@ jobs:
           /bin/bash -c \
           "(cd /code && \
           /app/detect.sh \
-          --blackduck.url='https://blackduck.philips.com' \
+          --blackduck.url=${{ secrets.BLACKDUCK_URL }} \
           --blackduck.api.token=${{ secrets.BLACKDUCK_TOKEN }} \
           --blackduck.trust.cert=true \
           --detect.policy.check=true \
           --detect.source.path=/code \
-          --detect.project.name={edifoundation-apigatewaytokenauthenticator} \
-          --detect.project.version.name={1.0} \
+          --detect.project.name=${{ secrets.BLACKDUCK_PROJECT }} \
+          --detect.project.version.name=${{ secrets.BLACKDUCK_VERSION }} \
           --detect.blackduck.signature.scanner.individual.file.matching=ALL \
           --detect.bom.aggregate.name={agregator})"
 
-  Fortify:
-    #needs: [Init]
-    runs-on: builder_blr_2
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
+  # Fortify:
+  #   #needs: [Init]
+  #   runs-on: builder_blr_2
+  #   steps:
+  #     - name: checkout
+  #       uses: actions/checkout@v2
         
-      - name: Fortify scan
-        run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\build\ps\Invoke-FortifyScan.ps1 -PublishAuthToken ${{ secrets.FORTIFY_TOKEN }}
+  #     - name: Fortify scan
+  #       run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\build\ps\Invoke-FortifyScan.ps1 -PublishAuthToken ${{ secrets.FORTIFY_TOKEN }}
 
   # Build:
   #   needs: [Init]
