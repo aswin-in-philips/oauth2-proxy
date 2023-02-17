@@ -90,7 +90,7 @@ jobs:
 
   BlackduckScan:
     #needs: [Init]
-    uses: philips-internal/edi-reusable-workflows/.github/workflows/Blackduck.yml@main
+    uses: philips-internal/edi-reusable-workflows/.github/workflows/Blackduck-js.yml@main
     with:
       project_name: 'SA_edifoundation-oauth2proxy'
       project_version: '1.0'
