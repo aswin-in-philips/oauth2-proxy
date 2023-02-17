@@ -3,8 +3,8 @@ name: CI
 on:
   push:
     branches:
-      - 'pr-tag-update'
-      # - $default-branch
+      - 'edi-foundation-integration'
+      - $default-branch
     paths-ignore:
     - 'VERSION'
     - '.bumpversion.cfg'
@@ -89,7 +89,7 @@ jobs:
   #       ./.github/workflows/test.sh
 
   # BlackduckScan:
-  #   #needs: [Init]
+  #   needs: [Init]
   #   runs-on: builder_blr
   #   steps:
   #     - name: checkout
@@ -97,9 +97,19 @@ jobs:
 
   #     - name: blackduck scan
   #       run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\Build\PS\Invoke-BlackduckDetect.ps1 -SourcePath ${{ github.workspace }} -ApiToken ${{ secrets.BLACKDUCK_TOKEN }}
-
+    
+  # Fortify:
+  #   needs: [Init]
+  #   runs-on: builder_blr_2
+  #   steps:
+  #     - name: checkout
+  #       uses: actions/checkout@v2
+        
+  #     - name: Fortify scan
+  #       run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\build\ps\Invoke-FortifyScan.ps1 -PublishAuthToken ${{ secrets.FORTIFY_TOKEN }}
+  
   CodeAnalysis:
-    runs-on: ubuntu-20.04
+    runs-on: builder_blr
     #needs: [Init]
     defaults:
       run:
@@ -124,18 +134,6 @@ jobs:
           SONAR_HOST_URL: https://sonarqube.ta.philips.com/
         with:
           projectBaseDir: ${{ github.workspace }}
-    
-
-
-  # Fortify:
-  #   #needs: [Init]
-  #   runs-on: builder_blr_2
-  #   steps:
-  #     - name: checkout
-  #       uses: actions/checkout@v2
-        
-  #     - name: Fortify scan
-  #       run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\build\ps\Invoke-FortifyScan.ps1 -PublishAuthToken ${{ secrets.FORTIFY_TOKEN }}
 
   # Build:
   #   needs: [Init]
