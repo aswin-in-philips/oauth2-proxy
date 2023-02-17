@@ -26,9 +26,10 @@ try {
 
     & sourceanalyzer -b $FortifyBuildId -clean -logfile "$PSScriptRoot\fortify-clean.txt"
 
-    & sourceanalyzer  -Xmx8G -b $FortifyBuildId "$RepositoryRoot\contrib"
+    & sourceanalyzer  -Xmx8G -b $FortifyBuildId -gopath $RepositoryRoot -goroot $RepositoryRoot "$RepositoryRoot\**\*.go"
     & sourceanalyzer  -b $FortifyBuildId -show-files 
-    & sourceanalyzer  -Xmx8G -b $FortifyBuildId  -Dcom.fortify.sca.Phase0HigherOrder.Languages=go -scan -f $FortifyFprPath -logfile "$PSScriptRoot\fortify-scan.txt"
+    #& sourceanalyzer  -Xmx8G -b $FortifyBuildId  -Dcom.fortify.sca.Phase0HigherOrder.Languages=go -scan -f $FortifyFprPath -logfile "$PSScriptRoot\fortify-scan.txt"
+    & sourceanalyzer  -Xmx8G -b $FortifyBuildId -logfile "$PSScriptRoot\fortify-scan.txt" -scan -f $FortifyFprPath
 
     #Upload fpr reports to fortify server
     Write-Output "Uploading '$FortifyFprPath' of '$FortifyProjectId' with version '$FortifyVersionId' to '$PublishURL'"

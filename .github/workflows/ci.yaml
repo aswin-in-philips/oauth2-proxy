@@ -104,13 +104,13 @@ jobs:
           /bin/bash -c \
           "(cd /code && \
           /app/detect.sh \
-          --blackduck.url=https://blackduck.philips.com \
+          --blackduck.url='https://blackduck.philips.com' \
           --blackduck.api.token=${{ secrets.BLACKDUCK_TOKEN }} \
           --blackduck.trust.cert=true \
           --detect.policy.check=true \
           --detect.source.path=/code \
-          --detect.project.name=edifoundation-apigatewaytokenauthenticator \
-          --detect.project.version.name=1.0 \
+          --detect.project.name='edifoundation-apigatewaytokenauthenticator' \
+          --detect.project.version.name='1.0' \
           --detect.blackduck.signature.scanner.individual.file.matching=ALL \
           --detect.bom.aggregate.name={agregator})"
 
