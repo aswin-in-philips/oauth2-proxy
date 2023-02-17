@@ -92,27 +92,13 @@ jobs:
     #needs: [Init]
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2.4.1
-
-      - name: Scan blackduck
-        run: |
-          docker run -v ${{ github.workspace}}:/code \
-          philipssoftware/blackduck:8.5 \
-          /bin/bash -c \
-          "(cd /code && \
-          /app/detect.sh \
-          --blackduck.url=${{ secrets.BLACKDUCK_URL }} \
-          --blackduck.api.token=${{ secrets.BLACKDUCK_TOKEN }} \
-          --blackduck.trust.cert=true \
-          --detect.policy.check=true \
-          --detect.source.path=/code \
-          --detect.project.name=${{ secrets.BLACKDUCK_PROJECT }} \
-          --detect.project.version.name=${{ secrets.BLACKDUCK_VERSION }} \
-          --detect.blackduck.signature.scanner.individual.file.matching=ALL \
-          --detect.bom.aggregate.name={agregator})"
+      - uses: philips-labs/blackduck-scanner-action@v1
+        with:
+          token: ${{ secrets.BLACKDUCK_TOKEN }}
+          projectName: ${{ secrets.BLACKDUCK_PROJECT }}
+          versionPrefix: ${{ secrets.BLACKDUCK_VERSION }}
+          url: ${{ secrets.BLACKDUCK_URL }}
+          sourcePath: ${{ github.workspace}}
 
   # Fortify:
   #   #needs: [Init]
