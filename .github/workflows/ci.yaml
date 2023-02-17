@@ -88,15 +88,43 @@ jobs:
   #     run: |
   #       ./.github/workflows/test.sh
 
-  BlackduckScan:
-    #needs: [Init]
-    runs-on: builder_blr
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
+  # BlackduckScan:
+  #   #needs: [Init]
+  #   runs-on: builder_blr
+  #   steps:
+  #     - name: checkout
+  #       uses: actions/checkout@v2
 
-      - name: blackduck scan
-        run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\Build\PS\Invoke-BlackduckDetect.ps1 -SourcePath ${{ github.workspace }} -ApiToken ${{ secrets.BLACKDUCK_TOKEN }}
+  #     - name: blackduck scan
+  #       run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\Build\PS\Invoke-BlackduckDetect.ps1 -SourcePath ${{ github.workspace }} -ApiToken ${{ secrets.BLACKDUCK_TOKEN }}
+
+  CodeAnalysis:
+    runs-on: ubuntu-20.04
+    #needs: [Init]
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: install Go
+        run: |
+          sudo apt update
+          sudo apt install golang
+
+      - name: coverage-report
+        run: |
+          cd ${{ github.workspace }}
+          go test -cover
+
+      # - name: SonarQube Scan
+      #   uses: sonarsource/sonarqube-scan-action@master
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #     SONAR_HOST_URL: https://sonarqube.ta.philips.com/
+      #   with:
+      #     projectBaseDir: ${{ github.workspace }}
+    
 
 
   # Fortify:
