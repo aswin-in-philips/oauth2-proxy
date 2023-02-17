@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - 'edi-foundation-integration'
-      - $default-branch
+      # - $default-branch
     paths-ignore:
     - 'VERSION'
     - '.bumpversion.cfg'
