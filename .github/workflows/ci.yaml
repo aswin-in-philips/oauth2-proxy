@@ -107,6 +107,26 @@ jobs:
         
       - name: Fortify scan
         run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\build\ps\Invoke-FortifyScan.ps1 -PublishAuthToken ${{ secrets.FORTIFY_TOKEN }}
+        
+  CodeAnalysis:
+    runs-on: builder_blr
+    needs: [Init]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Go 1.16
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.x
+        id: go
+
+      - name: coverage
+        run: |
+          go test -coverprofile=${{ github.workspace }}\coverage.out
+      
+      - name: sonar
+        run: |
+          D:\SonarQube\Sonar-Scanner\sonar-scanner-cli-4.4.0.2170-windows\sonar-scanner-4.4.0.2170-windows\bin\sonar-scanner.bat -D"sonar.projectKey=EDI-hds-oauth2-proxy" -D"sonar.sources=." -D"sonar.tests=." -D"sonar.go.coverage.reportPaths=${{ github.workspace }}\coverage.out" -D"sonar.host.url=https://sonarqube.ta.philips.com/" -D"sonar.login=${{ secrets.SONAR_TOKEN }}"
   
 
   Build:
