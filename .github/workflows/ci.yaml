@@ -126,8 +126,7 @@ jobs:
       
       - name: sonar
         run: |
-          cd D:\SonarQube\sonarqube-8.3.0.34182\sonarqube-8.3.0.34182\bin\windows-x86-64
-          .\StartSonar.bat -D"sonar.projectKey=EDI-hds-oauth2-proxy" -D"sonar.sources=${{ github.workspace }}"  -D"sonar.tests=${{ github.workspace }}" -D"sonar.go.coverage.reportPaths=coverage.out "-D"sonar.host.url=https://sonarqube.ta.philips.com/" -D"sonar.login=${{ secrets.SONAR_TOKEN }}"
+          D:\SonarQube\Sonar-Scanner\sonar-scanner-cli-4.4.0.2170-windows\sonar-scanner-4.4.0.2170-windows\bin\sonar-scanner.bat -D"sonar.projectKey=EDI-hds-oauth2-proxy" -D"sonar.sources=."  -D"sonar.tests=." -D"sonar.go.coverage.reportPaths=coverage.out "-D"sonar.host.url=https://sonarqube.ta.philips.com/" -D"sonar.login=${{ secrets.SONAR_TOKEN }}"
 
       # - name: SonarQube Scan
       #   uses: sonarsource/sonarqube-scan-action@master
