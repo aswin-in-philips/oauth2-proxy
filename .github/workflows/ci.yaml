@@ -122,7 +122,7 @@ jobs:
 
       - name: coverage
         run: |
-          go test -cover
+          go test -coverprofile=coverage.out ./...
 
       
       - name: sonar
