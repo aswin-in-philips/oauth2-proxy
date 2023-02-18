@@ -117,12 +117,12 @@ jobs:
       - name: Set up Go 1.16
         uses: actions/setup-go@v2
         with:
-          go-version: 1.13.x
+          go-version: 1.16.x
         id: go
 
       - name: coverage
         run: |
-          go test -coverprofile=coverage.out
+          go test -coverprofile=${{ github.workspace }}\coverage.out
       
       - name: sonar
         run: |
