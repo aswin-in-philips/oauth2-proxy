@@ -123,11 +123,11 @@ jobs:
       - name: coverage
         run: |
           go test -cover
-          
+
       
       - name: sonar
         run: |
-          D:\SonarQube\Sonar-Scanner\sonar-scanner-cli-4.4.0.2170-windows\sonar-scanner-4.4.0.2170-windows\bin\sonar-scanner.bat -D"sonar.projectKey=EDI-hds-oauth2-proxy" -D"sonar.sources=."  -D"sonar.tests=." -D"sonar.go.coverage.reportPaths=coverage.out "-D"sonar.host.url=https://sonarqube.ta.philips.com/" -D"sonar.login=${{ secrets.SONAR_TOKEN }}"
+          D:\SonarQube\Sonar-Scanner\sonar-scanner-cli-4.4.0.2170-windows\sonar-scanner-4.4.0.2170-windows\bin\sonar-scanner.bat -D"sonar.projectKey=EDI-hds-oauth2-proxy" -D"sonar.sources=."  -D"sonar.tests=." -D"sonar.go.coverage.reportPaths=coverage.out" -D"sonar.host.url=https://sonarqube.ta.philips.com/" -D"sonar.login=${{ secrets.SONAR_TOKEN }}"
 
       # - name: SonarQube Scan
       #   uses: sonarsource/sonarqube-scan-action@master
