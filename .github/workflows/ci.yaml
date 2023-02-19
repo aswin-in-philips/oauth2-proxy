@@ -13,11 +13,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Wokflow-Queue:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #     - uses: ahmadnassri/action-workflow-queue@v1
+  Wokflow-Queue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ahmadnassri/action-workflow-queue@v1
   
   code-test:
     #needs: [Wokflow-Queue]
