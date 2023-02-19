@@ -47,6 +47,7 @@ jobs:
           git config --global user.email "ci.build@philips.com"
           git commit -am "Bump version $new_version"
           git push --force
+          
 
   # unit-test:
   #   needs: [Init]
