@@ -13,14 +13,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  Wokflow-Queue:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: ahmadnassri/action-workflow-queue@v1
+  # Wokflow-Queue:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: ahmadnassri/action-workflow-queue@v1
   
   Init:
-    needs: [Wokflow-Queue]
+    #needs: [Wokflow-Queue]
     runs-on: ubuntu-20.04
     outputs:
         Version: ${{ steps.setVariables.outputs.version }}
