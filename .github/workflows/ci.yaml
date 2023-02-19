@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: ahmadnassri/action-workflow-queue@v1
   
-  code-test:
+  Init:
     needs: [Wokflow-Queue]
     runs-on: ubuntu-20.04
     outputs:
