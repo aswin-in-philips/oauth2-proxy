@@ -19,7 +19,7 @@ jobs:
   #     - uses: actions/checkout@v2
   #     - uses: ahmadnassri/action-workflow-queue@v1
   
-  test:
+  code-test:
     #needs: [Wokflow-Queue]
     runs-on: ubuntu-20.04
     outputs:
@@ -47,7 +47,7 @@ jobs:
           git config --global user.email "ci.build@philips.com"
           git commit -am "Bump version $new_version"
           git push --force
-          
+
 
   # unit-test:
   #   needs: [Init]
