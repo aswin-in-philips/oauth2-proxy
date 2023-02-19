@@ -19,34 +19,34 @@ jobs:
   #     - uses: actions/checkout@v2
   #     - uses: ahmadnassri/action-workflow-queue@v1
   
-  # Init:
-  #   needs: [Wokflow-Queue]
-  #   runs-on: ubuntu-20.04
-  #   outputs:
-  #       Version: ${{ steps.setVariables.outputs.version }}
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #       with:
-  #        token: ${{ secrets.ADMIN_TOKEN }}
+  test:
+    #needs: [Wokflow-Queue]
+    runs-on: ubuntu-20.04
+    outputs:
+        Version: ${{ steps.setVariables.outputs.version }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+         token: ${{ secrets.ADMIN_TOKEN }}
 
-  #     - name: Extract branch name
-  #       uses: vazco/github-actions-branch-name@v1
-  #       id: branch
+      - name: Extract branch name
+        uses: vazco/github-actions-branch-name@v1
+        id: branch
 
-  #     - name: Bump version
-  #       if: github.ref == 'refs/heads/edi-foundation-integration'
-  #       id: setVariables
-  #       run: |
-  #         sudo apt update
-  #         sudo apt install bumpversion
-  #         bumpversion patch
-  #         new_version=`cat VERSION`
-  #         echo "New version is: $new_version"
-  #         echo "version=$new_version" >> $GITHUB_OUTPUT
-  #         git config --global user.name "CI Build"
-  #         git config --global user.email "ci.build@philips.com"
-  #         git commit -am "Bump version $new_version"
-  #         git push --force
+      - name: Bump version
+        if: github.ref == 'refs/heads/edi-foundation-integration'
+        id: setVariables
+        run: |
+          sudo apt update
+          sudo apt install bumpversion
+          bumpversion patch
+          new_version=`cat VERSION`
+          echo "New version is: $new_version"
+          echo "version=$new_version" >> $GITHUB_OUTPUT
+          git config --global user.name "CI Build"
+          git config --global user.email "ci.build@philips.com"
+          git commit -am "Bump version $new_version"
+          git push --force
 
   # unit-test:
   #   needs: [Init]
@@ -108,25 +108,25 @@ jobs:
   #     - name: Fortify scan
   #       run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\build\ps\Invoke-FortifyScan.ps1 -PublishAuthToken ${{ secrets.FORTIFY_TOKEN }}
   
-  CodeAnalysis:
-    runs-on: builder_blr
-    #needs: [Init]
-    steps:
-      - uses: actions/checkout@v2
+  # CodeAnalysis:
+  #   runs-on: builder_blr
+  #   needs: [Init]
+  #   steps:
+  #     - uses: actions/checkout@v2
 
-      - name: Set up Go 1.16
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.16.x
-        id: go
+  #     - name: Set up Go 1.16
+  #       uses: actions/setup-go@v2
+  #       with:
+  #         go-version: 1.16.x
+  #       id: go
 
-      - name: coverage
-        run: |
-          go test -coverprofile=${{ github.workspace }}\coverage.out
+  #     - name: coverage
+  #       run: |
+  #         go test -coverprofile=${{ github.workspace }}\coverage.out
       
-      - name: sonar
-        run: |
-          D:\SonarQube\Sonar-Scanner\sonar-scanner-cli-4.4.0.2170-windows\sonar-scanner-4.4.0.2170-windows\bin\sonar-scanner.bat -D"sonar.projectKey=EDI-hds-oauth2-proxy" -D"sonar.sources=." -D"sonar.tests=." -D"sonar.go.coverage.reportPaths=coverage.out" -D"sonar.host.url=https://sonarqube.ta.philips.com/" -D"sonar.login=${{ secrets.SONAR_TOKEN }}"
+  #     - name: sonar
+  #       run: |
+  #         D:\SonarQube\Sonar-Scanner\sonar-scanner-cli-4.4.0.2170-windows\sonar-scanner-4.4.0.2170-windows\bin\sonar-scanner.bat -D"sonar.projectKey=EDI-hds-oauth2-proxy" -D"sonar.sources=." -D"sonar.tests=." -D"sonar.go.coverage.reportPaths=${{ github.workspace }}\coverage.out" -D"sonar.host.url=https://sonarqube.ta.philips.com/" -D"sonar.login=${{ secrets.SONAR_TOKEN }}"
 
       # - name: SonarQube Scan
       #   uses: sonarsource/sonarqube-scan-action@master
