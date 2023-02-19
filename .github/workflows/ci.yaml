@@ -20,7 +20,7 @@ jobs:
       - uses: ahmadnassri/action-workflow-queue@v1
   
   code-test:
-    #needs: [Wokflow-Queue]
+    needs: [Wokflow-Queue]
     runs-on: ubuntu-20.04
     outputs:
         Version: ${{ steps.setVariables.outputs.version }}
