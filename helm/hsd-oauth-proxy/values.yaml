@@ -1,0 +1,129 @@
+# Default values for hsd-oauth-proxy.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: 070446044274.dkr.ecr.us-east-1.amazonaws.com/hsd-pfs-auth-gateway-oauth-proxy
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+envSecrets:
+  OAUTH2_PROXY_CLIENT_SECRET: ""
+  OAUTH2_PROXY_COOKIE_SECRET: ""
+  OAUTH2_PROXY_REDIS_CONNECTION_URL: ""
+
+envVariables:
+  OAUTH2_PROXY_AUTH_LOGGING: "true"
+  OAUTH2_PROXY_AUTH_LOGGING_FORMAT: "info|CustomLogEvent||OAuth2Proxy|{{.Client}} - [{{.Timestamp}}] [{{.Status}}] {{.Message}}"
+  OAUTH2_PROXY_CLIENT_ID: ""
+  OAUTH2_PROXY_COOKIE_DOMAINS: ""
+  OAUTH2_PROXY_COOKIE_EXPIRE: "24h0m0s"
+  OAUTH2_PROXY_COOKIE_NAME: "edi_session_wfm-ci"
+  OAUTH2_PROXY_COOKIE_REFRESH: "0h28m0s"
+  OAUTH2_PROXY_COOKIE_SECURE: "true"
+  OAUTH2_PROXY_EMAIL_DOMAINS: "*"
+  OAUTH2_PROXY_HTTP_ADDRESS: "0.0.0.0:8080"
+  OAUTH2_PROXY_INSECURE_OIDC_ALLOW_UNVERIFIED_EMAIL: "true"
+  OAUTH2_PROXY_INSECURE_OIDC_SKIP_ISSUER_VERIFICATION: "true"
+  OAUTH2_PROXY_INTROSPECT_URL: ""
+  OAUTH2_PROXY_LOGIN_URL: ""
+  OAUTH2_PROXY_METRICS_ADDRESS: "0.0.0.0:9090"
+  OAUTH2_PROXY_OIDC_ISSUER_URL: ""
+  OAUTH2_PROXY_OIDC_JWKS_URL: ""
+  OAUTH2_PROXY_PASS_ACCESS_TOKEN: "true"
+  OAUTH2_PROXY_PASS_AUTHORIZATION_HEADER: "true"
+  OAUTH2_PROXY_PASS_BASIC_AUTH: "true"
+  OAUTH2_PROXY_PROFILE_URL: ""
+  OAUTH2_PROXY_PROVIDER: "oidc"
+  OAUTH2_PROXY_PROVIDER_DISPLAY_NAME: "oidc"
+  OAUTH2_PROXY_PROXY_PREFIX: ""
+  OAUTH2_PROXY_REDEEM_URL: ""
+  OAUTH2_PROXY_REDIRECT_URL: ""
+  OAUTH2_PROXY_REQUEST_LOGGING: "true"
+  OAUTH2_PROXY_REQUEST_LOGGING_FORMAT: "info|CustomLogEvent||OAuth2Proxy|{{.Client}} - [{{.Timestamp}}] {{.Host}} {{.RequestMethod}} {{.Upstream}} {{.RequestURI}} {{.Protocol}} {{.UserAgent}} {{.StatusCode}} {{.ResponseSize}} {{.RequestDuration}}"
+  OAUTH2_PROXY_SESSION_STORE_TYPE: "redis"
+  OAUTH2_PROXY_SET_AUTHORIZATION_HEADER: "true"
+  OAUTH2_PROXY_SET_INTROSPECTION_VALUE: "true"
+  OAUTH2_PROXY_SET_XAUTHREQUEST: "true"
+  OAUTH2_PROXY_SKIP_OIDC_DISCOVERY: "true"
+  OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: "true"
+  OAUTH2_PROXY_STANDARD_LOGGING: "true"
+  OAUTH2_PROXY_STANDARD_LOGGING_FORMAT: "info|CustomLogEvent||OAuth2Proxy|[{{.Timestamp}}] [{{.File}}] {{.Message}}"
+  OAUTH2_PROXY_UPSTREAMS: "static://"
+  OAUTH2_PROXY_WHITELIST_DOMAINS: ""
+
+OptionalEnvVariables: {}
