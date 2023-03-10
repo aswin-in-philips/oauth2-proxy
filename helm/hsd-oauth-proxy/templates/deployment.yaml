@@ -36,10 +36,26 @@ spec:
             - configMapRef:
                 name: hsd-oauth-proxy-env-cm
           env:
-          {{- range $k, $v := .Values.envVariables }}
-            - name: {{ $k | quote }}
-              value: {{ $v | quote }}
-          {{- end }} 
+            - name: OAUTH2_PROXY_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{.Values.envFromSecret.OAUTH2_PROXY_CLIENT_ID.secretKeyRef.name}}
+                  key: {{.Values.envFromSecret.OAUTH2_PROXY_CLIENT_ID.secretKeyRef.key}}
+            - name: OAUTH2_PROXY_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{.Values.envFromSecret.OAUTH2_PROXY_CLIENT_SECRET.secretKeyRef.name}}
+                  key: {{.Values.envFromSecret.OAUTH2_PROXY_CLIENT_SECRET.secretKeyRef.key}}
+            - name: OAUTH2_PROXY_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{.Values.envFromSecret.OAUTH2_PROXY_COOKIE_SECRET.secretKeyRef.name}}
+                  key: {{.Values.envFromSecret.OAUTH2_PROXY_COOKIE_SECRET.secretKeyRef.key}}
+            - name: OAUTH2_PROXY_REDIS_CONNECTION_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{.Values.envFromSecret.OAUTH2_PROXY_REDIS_CONNECTION_URL.secretKeyRef.name}}
+                  key: {{.Values.envFromSecret.OAUTH2_PROXY_REDIS_CONNECTION_URL.secretKeyRef.key}}
           {{- range $k, $v := .Values.optionalEnvVariables }}
             - name: {{ $k | quote }}
               value: {{ $v | quote }}

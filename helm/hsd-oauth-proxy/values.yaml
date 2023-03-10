@@ -65,9 +65,9 @@ tolerations: []
 
 affinity: {}
 
-envFromSecrets: 
+envFromSecret: 
   OAUTH2_PROXY_CLIENT_ID:
-    secretKeyRef: 
+    secretKeyRef:
       name: oauthSecrets
       key: clientId
   OAUTH2_PROXY_CLIENT_SECRET:
