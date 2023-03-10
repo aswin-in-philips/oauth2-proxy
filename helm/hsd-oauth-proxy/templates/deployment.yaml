@@ -34,15 +34,13 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           envFrom:
             - configMapRef:
-                name: hsd-oauth-env-cm
-
+                name: hsd-oauth-proxy-env-cm
           env:
-          {{- range $k, $v := .Values.envSecrets }}
+          {{- range $k, $v := .Values.envVariables }}
             - name: {{ $k | quote }}
               value: {{ $v | quote }}
           {{- end }} 
-
-          {{- range $k, $v := .Values.OptionalEnvVariables }}
+          {{- range $k, $v := .Values.optionalEnvVariables }}
             - name: {{ $k | quote }}
               value: {{ $v | quote }}
           {{- end }}   

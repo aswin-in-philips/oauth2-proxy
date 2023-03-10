@@ -5,7 +5,6 @@ metadata:
 data:
   OAUTH2_PROXY_AUTH_LOGGING: {{ .Values.envVariables.OAUTH2_PROXY_AUTH_LOGGING | quote }}
   OAUTH2_PROXY_AUTH_LOGGING_FORMAT: {{ .Values.envVariables.OAUTH2_PROXY_AUTH_LOGGING_FORMAT | quote }}
-  OAUTH2_PROXY_CLIENT_ID: {{ .Values.envVariables.OAUTH2_PROXY_CLIENT_ID | quote }}
   OAUTH2_PROXY_COOKIE_DOMAINS: {{ .Values.envVariables.OAUTH2_PROXY_COOKIE_DOMAINS | quote }}
   OAUTH2_PROXY_COOKIE_EXPIRE: {{ .Values.envVariables.OAUTH2_PROXY_COOKIE_EXPIRE | quote }}
   OAUTH2_PROXY_COOKIE_NAME: {{ .Values.envVariables.OAUTH2_PROXY_COOKIE_NAME | quote }}

@@ -65,15 +65,26 @@ tolerations: []
 
 affinity: {}
 
-envSecrets:
-  #mandatory secrets
-  OAUTH2_PROXY_CLIENT_SECRET: ""
-  OAUTH2_PROXY_COOKIE_SECRET: ""
-  OAUTH2_PROXY_REDIS_CONNECTION_URL: ""
+envFromSecrets: 
+  OAUTH2_PROXY_CLIENT_ID:
+    secretKeyRef: 
+      name: oauthSecrets
+      key: clientId
+  OAUTH2_PROXY_CLIENT_SECRET:
+    secretKeyRef: 
+      name: oauthSecrets
+      key: clientSecret
+  OAUTH2_PROXY_COOKIE_SECRET:
+    secretKeyRef: 
+      name: oauthSecrets
+      key: cookieSecret
+  OAUTH2_PROXY_REDIS_CONNECTION_URL:
+    secretKeyRef: 
+      name: oauthSecrets
+      key: redisConnectionUrl
 
 envVariables:
   #mandatory input variables
-  OAUTH2_PROXY_CLIENT_ID: ""
   OAUTH2_PROXY_COOKIE_DOMAINS: ""
   OAUTH2_PROXY_COOKIE_NAME: ""
   OAUTH2_PROXY_LOGIN_URL: ""
@@ -98,4 +109,5 @@ envVariables:
   OAUTH2_PROXY_STANDARD_LOGGING: "true"
   OAUTH2_PROXY_STANDARD_LOGGING_FORMAT: "info|CustomLogEvent||OAuth2Proxy|[{{.Timestamp}}] [{{.File}}] {{.Message}}"
   
-OptionalEnvVariables: {}
+#Any additional OAuth2 specific enviroment variables can be passed here
+optionalEnvVariables: {}
