@@ -66,11 +66,11 @@ spec:
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /
+              path: /ping
               port: http
           readinessProbe:
             httpGet:
-              path: /
+              path: /ping #change to /ready for version greater than 7.4.0
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
