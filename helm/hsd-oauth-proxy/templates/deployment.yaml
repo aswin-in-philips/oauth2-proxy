@@ -56,6 +56,7 @@ spec:
                 secretKeyRef:
                   name: {{.Values.envFromSecret.OAUTH2_PROXY_REDIS_CONNECTION_URL.secretKeyRef.name}}
                   key: {{.Values.envFromSecret.OAUTH2_PROXY_REDIS_CONNECTION_URL.secretKeyRef.key}}
+
           {{- range $k, $v := .Values.optionalEnvVariables }}
             - name: {{ $k | quote }}
               value: {{ $v | quote }}
