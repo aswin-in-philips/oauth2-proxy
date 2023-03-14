@@ -1,0 +1,6 @@
+apiVersion: v2
+name: hsd-oauth-proxy
+description: A Helm chart to deploy hsd auth gateway oauth proxy
+type: application
+version: 0.1.0
+appVersion: "1.0.20-rc"

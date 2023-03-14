@@ -1,0 +1,115 @@
+# Default values for hsd-oauth-proxy.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: 070446044274.dkr.ecr.us-east-1.amazonaws.com/hsd-pfs-auth-gateway-oauth-proxy
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8080
+  ports:
+    web1:
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+    web2:
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+envFromSecret: 
+  OAUTH2_PROXY_CLIENT_ID:
+    secretKeyRef:
+      name: oauth-secrets
+      key: clientId
+  OAUTH2_PROXY_CLIENT_SECRET:
+    secretKeyRef: 
+      name: oauth-secrets
+      key: clientSecret
+  OAUTH2_PROXY_COOKIE_SECRET:
+    secretKeyRef: 
+      name: oauth-secrets
+      key: cookieSecret
+  OAUTH2_PROXY_REDIS_CONNECTION_URL:
+    secretKeyRef: 
+      name: redis
+      key: oauthRedisConnectionUrl
+
+envVariables:
+  #mandatory input variables
+  OAUTH2_PROXY_REDIS_CLUSTER_CONNECTION_URLS: "redis://hsd-development-cluster-pfm.qvw0di.0001.use1.cache.amazonaws.com:6379"
+  OAUTH2_PROXY_REDIS_USE_CLUSTER: "true"
+  OAUTH2_PROXY_COOKIE_DOMAINS: "cardioorg-test.us-east.philips-healthsuite.com"
+  OAUTH2_PROXY_COOKIE_NAME: "edi_session_edi-platform-foundationeks"
+  OAUTH2_PROXY_LOGIN_URL: "https://foundation-client-test.us-east.philips-healthsuite.com/loginapp"
+  OAUTH2_PROXY_OIDC_ISSUER_URL: "https://iam-client-test.us-east.philips-healthsuite.com/authorize/oauth2/v2"
+  OAUTH2_PROXY_OIDC_JWKS_URL: "https://iam-client-test.us-east.philips-healthsuite.com/authorize/oauth2/v2/jwks"
+  OAUTH2_PROXY_PROFILE_URL: "https://iam-client-test.us-east.philips-healthsuite.com/authorize/oauth2/v2/userinfo"
+  OAUTH2_PROXY_INTROSPECT_URL: "https://iam-client-test.us-east.philips-healthsuite.com/authorize/oauth2/v4/introspect"
+  OAUTH2_PROXY_REDEEM_URL: "https://iam-client-test.us-east.philips-healthsuite.com/authorize/oauth2/v2/token"
+  OAUTH2_PROXY_WHITELIST_DOMAINS: "cardioorg-test.us-east.philips-healthsuite.com"
+  OAUTH2_PROXY_PROXY_PREFIX: ""
+  OAUTH2_PROXY_REDIRECT_URL: "/oauth2/callback"
+ 
+  #optional input variables with default values
+  OAUTH2_PROXY_COOKIE_EXPIRE: "24h0m0s"
+  OAUTH2_PROXY_COOKIE_REFRESH: "0h28m0s"
+  OAUTH2_PROXY_HTTP_ADDRESS: "0.0.0.0:8080"  #Any change in port number needs to be updated in service port
+  OAUTH2_PROXY_METRICS_ADDRESS: "0.0.0.0:9090" #Any change in port number needs to be updated in service port
+  OAUTH2_PROXY_AUTH_LOGGING: "true"
+  OAUTH2_PROXY_AUTH_LOGGING_FORMAT: "info|CustomLogEvent||OAuth2Proxy|{{.Client}} - [{{.Timestamp}}] [{{.Status}}] {{.Message}}"
+  OAUTH2_PROXY_REQUEST_LOGGING: "true"
+  OAUTH2_PROXY_REQUEST_LOGGING_FORMAT: "info|CustomLogEvent||OAuth2Proxy|{{.Client}} - [{{.Timestamp}}] {{.Host}} {{.RequestMethod}} {{.Upstream}} {{.RequestURI}} {{.Protocol}} {{.UserAgent}} {{.StatusCode}} {{.ResponseSize}} {{.RequestDuration}}"
+  OAUTH2_PROXY_STANDARD_LOGGING: "true"
+  OAUTH2_PROXY_STANDARD_LOGGING_FORMAT: "info|CustomLogEvent||OAuth2Proxy|[{{.Timestamp}}] [{{.File}}] {{.Message}}"
+  
+#Any additional OAuth2 specific enviroment variables can be passed here
+optionalEnvVariables: {}
