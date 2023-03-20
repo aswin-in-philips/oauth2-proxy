@@ -66,13 +66,19 @@ tolerations: []
 affinity: {}
   
 envVariables:
-  #optional input variables with default values
+  #Input variables with default values
   OAUTH2_PROXY_HTTP_ADDRESS: "0.0.0.0:8080"  #Any change in port number needs to be updated in service port
   OAUTH2_PROXY_METRICS_ADDRESS: "0.0.0.0:9090" #Any change in port number needs to be updated in service port
-  OAUTH2_PROXY_PROXY_PREFIX: ""
-  OAUTH2_PROXY_REDIRECT_URL: "/oauth2/callback"
+  
+  OAUTH2_PROXY_PROXY_PREFIX: ""  #eg: /<path>/oauth2
+  OAUTH2_PROXY_REDIRECT_URL: "/oauth2/callback" #eg: /<path>/oauth2/callback
+  
   OAUTH2_PROXY_COOKIE_EXPIRE: "24h0m0s"
   OAUTH2_PROXY_COOKIE_REFRESH: "0h28m0s"
-   
+  
+  OAUTH2_PROXY_STANDARD_LOGGING: false
+  OAUTH2_PROXY_REQUEST_LOGGING: false
+  OAUTH2_PROXY_AUTH_LOGGING: false
+ 
 #Any additional OAuth2 specific enviroment variables can be passed here
 optionalEnvVariables: {}
