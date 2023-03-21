@@ -37,6 +37,7 @@ spec:
                 name: hsd-oauth-proxy-env-cm
             - secretRef:
                 name:  hsd-oauth-proxy-externalsecret
+          env:
           {{- range $k, $v := .Values.envVariables }}
             - name: {{ $k | quote }}
               value: {{ $v | quote }}
