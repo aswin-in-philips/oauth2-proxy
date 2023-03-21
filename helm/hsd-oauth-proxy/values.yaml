@@ -65,6 +65,8 @@ tolerations: []
 
 affinity: {}
   
+secretStoreBasePath: ""  #set the aws parameter store base path mentioned in terraform-api-gateway eg: "/<<cluster_id>>/<<module_name>>/<<namespace>>"
+
 envVariables:
   #Input variables with default values
   OAUTH2_PROXY_HTTP_ADDRESS: "0.0.0.0:8080"  #Any change in port number needs to be updated in service port
