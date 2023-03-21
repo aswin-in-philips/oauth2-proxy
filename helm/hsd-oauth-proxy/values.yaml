@@ -76,9 +76,8 @@ envVariables:
   OAUTH2_PROXY_COOKIE_EXPIRE: "24h0m0s"
   OAUTH2_PROXY_COOKIE_REFRESH: "0h28m0s"
   
-  OAUTH2_PROXY_STANDARD_LOGGING: false
-  OAUTH2_PROXY_REQUEST_LOGGING: false
-  OAUTH2_PROXY_AUTH_LOGGING: false
- 
-#Any additional OAuth2 specific enviroment variables can be passed here
-optionalEnvVariables: {}
+  OAUTH2_PROXY_STANDARD_LOGGING: "false"
+  OAUTH2_PROXY_REQUEST_LOGGING: "false"
+  OAUTH2_PROXY_AUTH_LOGGING: "false"
+   
+  #Any additional OAuth2 specific enviroment variables can be added here
