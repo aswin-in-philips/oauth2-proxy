@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - 'ecr-helm-push'
+      - 'edi-foundation-integration'
       # - $default-branch
     paths-ignore:
     - 'VERSION'
