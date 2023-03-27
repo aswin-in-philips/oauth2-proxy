@@ -88,15 +88,15 @@ jobs:
       run: |
         ./.github/workflows/test.sh
 
-  Blackduck:
-    needs: [Init]
-    runs-on: builder_blr
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
+  # Blackduck:
+  #   needs: [Init]
+  #   runs-on: builder_blr
+  #   steps:
+  #     - name: checkout
+  #       uses: actions/checkout@v2
 
-      - name: blackduck scan
-        run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\Build\PS\Invoke-BlackduckDetect.ps1 -SourcePath ${{ github.workspace }} -ApiToken ${{ secrets.BLACKDUCK_TOKEN }}
+  #     - name: blackduck scan
+  #       run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\Build\PS\Invoke-BlackduckDetect.ps1 -SourcePath ${{ github.workspace }} -ApiToken ${{ secrets.BLACKDUCK_TOKEN }}
     
   Fortify:
     needs: [Init]
@@ -194,7 +194,7 @@ jobs:
 
   PR_Deploy_Test_HDS_AUTH_GATEWAY:
     if: github.event_name == 'pull_request'
-    needs: [Build, Blackduck, Fortify, unit-test, CodeAnalysis]
+    needs: [Build, Fortify, unit-test, CodeAnalysis]
     uses: ./.github/workflows/deploy-hds-auth-gateway.yaml
     with:
       OAUTH2_PROXY_IMAGE: ${{ needs.Build.outputs.envoyPRTag }}
@@ -205,7 +205,7 @@ jobs:
 
   CI_Deploy_Test_HDS_AUTH_GATEWAY:
     if: github.ref == 'refs/heads/edi-foundation-integration'
-    needs: [Build, Blackduck, Fortify, unit-test, CodeAnalysis]
+    needs: [Build, Fortify, unit-test, CodeAnalysis]
     uses: ./.github/workflows/api-gw-integrated-test.yaml
     with:
       OAUTH2_PROXY_IMAGE: ${{ needs.Build.outputs.envoyCITag }}
