@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - 'edi-foundation-integration'
+      - 'ecr-helm-push'
       # - $default-branch
     paths-ignore:
     - 'VERSION'
@@ -47,7 +47,6 @@ jobs:
           git config --global user.email "ci.build@philips.com"
           git commit -am "Bump version $new_version"
           git push --force
-
   unit-test:
     needs: [Init]
     env:
@@ -69,25 +68,20 @@ jobs:
         curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.36.0
         curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
         chmod +x ./cc-test-reporter
-
     - name: Verify Code Generation
       run: |
         make verify-generate
-
     - name: Lint
       run: |
         make lint
-
     - name: Build
       run: |
         make build
-
     - name: Test
       env:
         CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
       run: |
         ./.github/workflows/test.sh
-
   Blackduck:
     needs: [Init]
     runs-on: builder_blr
@@ -135,8 +129,27 @@ jobs:
     outputs:
       oauth2proxyPRTag: ${{ steps.setVariables.outputs.prTag }}
       oauth2proxyCITag: ${{ steps.setVariables.outputs.betaTag }}
+    
+    env:
+      AWS_REGION: us-east-1
+      IMAGE_REPO: platform-services/edi-foundation-oauth2-proxy
+      ECR_REPO: 070446044274.dkr.ecr.us-east-1.amazonaws.com
+      HELM_REPO: platform-services/helm-oauth2-proxy
+    permissions:
+      id-token: write
+      contents: read
+    
+    
     steps:
     - uses: actions/checkout@v2
+    
+    - name: Installing Helm package
+      run: |
+        echo "Installing helm"
+        wget https://get.helm.sh/helm-v3.9.3-linux-amd64.tar.gz
+        tar xvf helm-v3.9.3-linux-amd64.tar.gz
+        mkdir -p $HOME/bin && cp ./linux-amd64/helm $HOME/bin/helm && export PATH=$PATH:$HOME/bin
+        helm version
 
     - name: Import Secrets
       id: secrets
@@ -152,7 +165,7 @@ jobs:
           devops/data/docker-repos/hsdp-edi user | HSDP_DOCKER_USER ;
           devops/data/docker-repos/hsdp-edi password | HSDP_DOCKER_PASSWORD ;
           devops/data/github/users/sal-devops token | GITHUB_TOKEN ;
-
+          
     - name: Extract branch name
       uses: vazco/github-actions-branch-name@v1
       id: branch
@@ -160,15 +173,37 @@ jobs:
     - name: Set env variables
       run: |
         new_version=${{ needs.Init.outputs.Version }}
-        pr_tag="PR-${{ github.run_id }}"
+        pr_version=`cat VERSION`
+        pr_tag="${pr_version}-${{ github.run_id }}"
         beta_tag="${new_version}-beta"
+        helm_pack=`echo $HELM_REPO|awk -F/ '{print $2}'`
+        helm_prefix=`echo $HELM_REPO|awk -F/ '{print $1}'`
         echo "New version is: $new_version"
         echo "VERSION=$new_version" >> "$GITHUB_ENV"
+        echo "PR_VERSION_TAG=$pr_tag" >> "$GITHUB_ENV"
+        echo "BETA_VERSION_TAG=$beta_tag" >> "$GITHUB_ENV"
+        echo "HELM_BASE_PATH=$helm_prefix" >> "$GITHUB_ENV"
+        echo "HELM_REPO_PATH=$helm_pack" >> "$GITHUB_ENV"
         echo "CI_IMAGE=${{ env.HSDP_DOCKER_REGISTRY }}/edi-foundation-oauth2-proxy:${beta_tag}" >> "$GITHUB_ENV"
         echo "PR_IMAGE=${{ env.HSDP_DOCKER_REGISTRY }}/edi-foundation-oauth2-proxy:${pr_tag}" >> "$GITHUB_ENV"
+        echo "ECR_PR_IMAGE=$ECR_REPO/$IMAGE_REPO:${pr_tag}" >> "$GITHUB_ENV"
+        echo "ECR_CI_IMAGE=$ECR_REPO/$IMAGE_REPO:${beta_tag}" >> "$GITHUB_ENV"
+        echo "ECR_PR_HELM_PACKAGE=${helm_pack}-${pr_tag}" >> "$GITHUB_ENV"
+        echo "ECR_CI_HELM_PACKAGE=${helm_pack}-${beta_tag}" >> "$GITHUB_ENV"
         echo "prTag=${pr_tag}" >> $GITHUB_OUTPUT
         echo "betaTag=${beta_tag}" >> $GITHUB_OUTPUT
+        
+        
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+          role-to-assume: arn:aws:iam::070446044274:role/github-actions/platform-service-roles
+          aws-region: ${{ env.AWS_REGION }}
 
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+      
     - name: Docker Build
       run: |
         make docker
@@ -184,14 +219,48 @@ jobs:
     - name: PR Image Docker Push
       if: github.event_name == 'pull_request'
       run: |
+          docker tag ${{ env.PR_IMAGE }} ${{ env.ECR_PR_IMAGE }}
           docker push ${{ env.PR_IMAGE }}
+          docker push ${{ env.ECR_PR_IMAGE }}
     
     - name: Docker Push
       if: github.ref == 'refs/heads/edi-foundation-integration'
       run: |
           docker tag ${{ env.PR_IMAGE }} ${{ env.CI_IMAGE }}
           docker push ${{ env.CI_IMAGE }}
-
+    
+    - name: ECR Docker Push
+      if: github.ref == 'refs/heads/edi-foundation-integration'
+      run: |
+          docker tag ${{ env.PR_IMAGE }} ${{ env.ECR_CI_IMAGE }}
+          docker push ${{ env.ECR_CI_IMAGE }}
+    
+    - name: Update PR image tag on values.yaml
+      if: github.event_name == 'pull_request'
+      run: |
+          sed -i "s/latest/$PR_VERSION_TAG/g" ./helm-oauth2-proxy/values.yaml
+    
+    - name: PR Helm Package and Push to ECR
+      if: github.event_name == 'pull_request'
+      run: |
+          export PATH=$PATH:$HOME/bin
+          helm package $HELM_REPO_PATH --version $PR_VERSION_TAG
+          helm push $ECR_PR_HELM_PACKAGE.tgz oci://$ECR_REPO/$HELM_BASE_PATH
+    
+    - name: Update CI image tag on values.yaml
+      if: github.ref == 'refs/heads/edi-foundation-integration'
+      run: |
+          sed -i "s/latest/$BETA_VERSION_TAG/g" ./helm-oauth2-proxy/values.yaml
+    
+    - name: Helm Package and Push to ECR
+      if: github.ref == 'refs/heads/edi-foundation-integration'
+      run: |
+          export PATH=$PATH:$HOME/bin
+          helm package $HELM_REPO_PATH --version $BETA_VERSION_TAG
+          helm push $ECR_CI_HELM_PACKAGE.tgz oci://$ECR_REPO/$HELM_BASE_PATH
+    
+  
+  
   PR_Deploy_Test_HDS_AUTH_GATEWAY:
     if: github.event_name == 'pull_request'
     needs: [Build, Blackduck, Fortify, unit-test, CodeAnalysis]
@@ -259,7 +328,6 @@ jobs:
           docker pull ${{ env.CI_IMAGE }}
           docker tag ${{ env.CI_IMAGE }} ${{ env.RC_IMAGE }}
           docker push ${{ env.RC_IMAGE }}
-
   Replace_OAuth2_Proxy_Tag_in_Terraform_API_Gateway:
     needs: [Promote_Version]
     if: github.ref == 'refs/heads/edi-foundation-integration'
