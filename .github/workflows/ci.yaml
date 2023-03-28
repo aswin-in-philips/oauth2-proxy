@@ -105,8 +105,11 @@ jobs:
           docker login docker.na1.hsdp.io --username '${{ secrets.DOCKER_USER }}' --password '${{ secrets.DOCKER_PSWD }}'
           docker pull docker.na1.hsdp.io/edi/edi-foundation-oauth2-proxy:1.0.27-beta
       
+      - name: Blackduck Image Scan
+        run: |
+          java -jar D:\synopsys-detect-8.3.0.jar --detect.project.name=SA_edifoundation-oauth2proxy --detect.project.version.name=1.0 --blackduck.url=https://blackduck.philips.com/ --blackduck.trust.cert=true --blackduck.api.token=${{ secrets.BLACKDUCK_TOKEN }} --detect.tools.excluded=BINARY_SCAN --detect.docker.image=docker.na1.hsdp.io/edi/edi-foundation-oauth2-proxy:1.0.27-beta
       
-    
+      
   # Fortify:
   #   needs: [Init]
   #   runs-on: builder_blr_2
