@@ -90,13 +90,11 @@ jobs:
 
   Blackduck:
     #needs: [Init]
-    runs-on: ubuntu-20.04
+    runs-on: builder_blr
     steps:
       - name: checkout
         uses: actions/checkout@v2
       
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2.4.1
 
       - name: Scan blackduck
         run: |
