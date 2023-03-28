@@ -94,16 +94,9 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v2
-      
-      - name: 'Set up archived Oracle JDK 11.0.1'
-        uses: oracle-actions/setup-java@v1
-        with:
-          website: oracle.com
-          release: 11
-          version: 11.0.1
 
-      # - name: blackduck scan
-      #   run: java -jar C:/blackduck/blackduck/synopsys-detect-8.3.0.jar  --detect.project.name=SA_edifoundation-oauth2proxy --detect.source.path=${{ github.workspace }} --detect.project.version.name=1.0 --blackduck.url=https://blackduck.philips.com/ --blackduck.trust.cert=true --blackduck.api.token=${{ secrets.BLACKDUCK_TOKEN }} --detect.tools.excluded=BINARY_SCAN
+      - name: blackduck scan
+        run: C:\Program Files\Eclipse Adoptium\jdk-11.0.18.10-hotspot\bin\java.exe -jar C:/blackduck/blackduck/synopsys-detect-8.3.0.jar  --detect.project.name=SA_edifoundation-oauth2proxy --detect.source.path=${{ github.workspace }} --detect.project.version.name=1.0 --blackduck.url=https://blackduck.philips.com/ --blackduck.trust.cert=true --blackduck.api.token=${{ secrets.BLACKDUCK_TOKEN }} --detect.tools.excluded=BINARY_SCAN
     
   # Fortify:
   #   needs: [Init]
