@@ -96,7 +96,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: blackduck scan
-        run: C:\Program Files\Eclipse Adoptium\jdk-11.0.18.10-hotspot\bin\java.exe -jar C:/blackduck/blackduck/synopsys-detect-8.3.0.jar  --detect.project.name=SA_edifoundation-oauth2proxy --detect.source.path=${{ github.workspace }} --detect.project.version.name=1.0 --blackduck.url=https://blackduck.philips.com/ --blackduck.trust.cert=true --blackduck.api.token=${{ secrets.BLACKDUCK_TOKEN }} --detect.tools.excluded=BINARY_SCAN
+        run: java.exe -jar C:/blackduck/blackduck/synopsys-detect-8.3.0.jar  --detect.project.name=SA_edifoundation-oauth2proxy --detect.source.path=${{ github.workspace }} --detect.project.version.name=1.0 --blackduck.url=https://blackduck.philips.com/ --blackduck.trust.cert=true --blackduck.api.token=${{ secrets.BLACKDUCK_TOKEN }} --detect.tools.excluded=BINARY_SCAN
     
   # Fortify:
   #   needs: [Init]
