@@ -95,10 +95,14 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
       
-
-      - name: Scan blackduck
+      - name: Pull docker Image
         run: |
-          docker run -v ${{ github.workspace}}:/code philipssoftware/blackduck:8.5 /bin/bash -c "(cd /code && /app/detect.sh --blackduck.url=https://blackduck.philips.com --blackduck.api.token=${{ secrets.BLACKDUCK_TOKEN }} --blackduck.trust.cert=true --detect.policy.check=true --detect.source.path=/code --detect.project.name=SA_edifoundation-oauth2proxy --detect.project.version.name=1.0 --detect.blackduck.signature.scanner.individual.file.matching=ALL --detect.bom.aggregate.name={agregator})"
+          docker login docker.na1.hsdp.io --username '${{ secrets.DOCKER_USER }}' --password '${{ secrets.DOCKER_PSWD }}'
+          docker pull docker.na1.hsdp.io/edi/edi-foundation-oauth2-proxy:1.0.27-beta
+      
+      # - name: Scan blackduck
+      #   run: |
+      #     docker run -v ${{ github.workspace}}:/code philipssoftware/blackduck:8.5 /bin/bash -c "(cd /code && /app/detect.sh --blackduck.url=https://blackduck.philips.com --blackduck.api.token=${{ secrets.BLACKDUCK_TOKEN }} --blackduck.trust.cert=true --detect.policy.check=true --detect.source.path=/code --detect.project.name=SA_edifoundation-oauth2proxy --detect.project.version.name=1.0 --detect.blackduck.signature.scanner.individual.file.matching=ALL --detect.bom.aggregate.name={agregator})"
     
   # Fortify:
   #   needs: [Init]
