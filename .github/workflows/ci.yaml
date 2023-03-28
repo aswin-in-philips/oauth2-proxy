@@ -98,20 +98,7 @@ jobs:
 
       - name: Scan blackduck
         run: |
-          docker run -v ${{ github.workspace}}:/code \
-          philipssoftware/blackduck:8.5 \
-          /bin/bash -c \
-          "(cd /code && \
-          /app/detect.sh \
-          --blackduck.url=https://blackduck.philips.com \
-          --blackduck.api.token=${{ secrets.BLACKDUCK_TOKEN }} \
-          --blackduck.trust.cert=true \
-          --detect.policy.check=true \
-          --detect.source.path=/code \
-          --detect.project.name=SA_edifoundation-oauth2proxy \
-          --detect.project.version.name=1.0 \
-          --detect.blackduck.signature.scanner.individual.file.matching=ALL \
-          --detect.bom.aggregate.name={agregator})"
+          docker run -v ${{ github.workspace}}:/code philipssoftware/blackduck:8.5 /bin/bash -c "(cd /code && /app/detect.sh --blackduck.url=https://blackduck.philips.com --blackduck.api.token=${{ secrets.BLACKDUCK_TOKEN }} --blackduck.trust.cert=true --detect.policy.check=true --detect.source.path=/code --detect.project.name=SA_edifoundation-oauth2proxy --detect.project.version.name=1.0 --detect.blackduck.signature.scanner.individual.file.matching=ALL --detect.bom.aggregate.name={agregator})"
     
   # Fortify:
   #   needs: [Init]
