@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - 'edi-foundation-integration'
+      - 'blackduck-image'
       # - $default-branch
     paths-ignore:
     - 'VERSION'
