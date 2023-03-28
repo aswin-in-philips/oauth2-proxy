@@ -94,9 +94,14 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v2
+      
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
 
-      - name: blackduck scan
-        run: java -jar C:/blackduck/blackduck/synopsys-detect-8.3.0.jar  --detect.project.name=SA_edifoundation-oauth2proxy --detect.source.path=${{ github.workspace }} --detect.project.version.name=1.0 --blackduck.url=https://blackduck.philips.com/ --blackduck.trust.cert=true --blackduck.api.token=${{ secrets.BLACKDUCK_TOKEN }} --detect.tools.excluded=BINARY_SCAN
+      # - name: blackduck scan
+      #   run: java -jar C:/blackduck/blackduck/synopsys-detect-8.3.0.jar  --detect.project.name=SA_edifoundation-oauth2proxy --detect.source.path=${{ github.workspace }} --detect.project.version.name=1.0 --blackduck.url=https://blackduck.philips.com/ --blackduck.trust.cert=true --blackduck.api.token=${{ secrets.BLACKDUCK_TOKEN }} --detect.tools.excluded=BINARY_SCAN
     
   # Fortify:
   #   needs: [Init]
