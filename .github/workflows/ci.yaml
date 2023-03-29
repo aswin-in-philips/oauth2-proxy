@@ -126,8 +126,6 @@ jobs:
     outputs:
       oauth2proxyPRTag: ${{ steps.setVariables.outputs.prTag }}
       oauth2proxyCITag: ${{ steps.setVariables.outputs.betaTag }}
-      blackduckPRImage: ${{ steps.setVariables.outputs.blackduck_pr_image }}
-      blackduckCIImage: ${{ steps.setVariables.outputs.blackduck_ci_image }}
     steps:
     - uses: actions/checkout@v2
 
@@ -161,8 +159,6 @@ jobs:
         echo "PR_IMAGE=${{ env.HSDP_DOCKER_REGISTRY }}/edi-foundation-oauth2-proxy:${pr_tag}" >> "$GITHUB_ENV"
         echo "prTag=${pr_tag}" >> $GITHUB_OUTPUT
         echo "betaTag=${beta_tag}" >> $GITHUB_OUTPUT
-        echo "blackduck_ci_image=${{ env.HSDP_DOCKER_REGISTRY }}/edi-foundation-oauth2-proxy:${beta_tag}" >> $GITHUB_OUTPUT
-        echo "blackduck_pr_image=${{ env.HSDP_DOCKER_REGISTRY }}/edi-foundation-oauth2-proxy:${pr_tag}" >> $GITHUB_OUTPUT
 
     - name: Docker Build
       run: |
@@ -203,23 +199,23 @@ jobs:
         #if: github.event_name == 'pull_request'
         run: |
           docker login docker.na1.hsdp.io --username '${{ secrets.DOCKER_USER }}' --password '${{ secrets.DOCKER_PSWD }}'
-          docker pull ${{ needs.Build.outputs.blackduckPRImage }}
+          docker pull docker.na1.hsdp.io/edi/edi-foundation-oauth2-proxy:${{ needs.Build.outputs.envoyPRTag }}
       
       - name: PR Blackduck Image Scan
         #if: github.event_name == 'pull_request'
         run: |
-          java -jar D:\synopsys-detect-8.3.0.jar --detect.project.name=SA_edifoundation-oauth2proxy --detect.project.version.name=1.0 --blackduck.url=https://blackduck.philips.com/ --detect.go.path="C:\Program Files\Go\bin\go.exe" --blackduck.trust.cert=true --blackduck.api.token=NmNjYmM4ODgtZjc0Ni00NTIwLTk3NDQtMjdiNzU1ZmFiYmE0OjBjNGQyODU1LTU1MDctNDkwMC1hNzI1LTJiZDg3YWZhZjJmMQ== --blackduck.proxy.host=apac.zscaler.philips.com --blackduck.proxy.port=10015 --blackduck.proxy.ignored.hosts=blackduck.philips.com --detect.tools.excluded=BINARY_SCAN --detect.docker.image=${{ needs.Build.outputs.blackduckPRImage }} --detect.blackduck.signature.scanner.local.path="C:\Users\ing07422\blackduck\tools\Black_Duck_Scan_Installation\scan.cli-2022.7.2"
+          java -jar D:\synopsys-detect-8.3.0.jar --detect.project.name=SA_edifoundation-oauth2proxy --detect.project.version.name=1.0 --blackduck.url=https://blackduck.philips.com/ --detect.go.path="C:\Program Files\Go\bin\go.exe" --blackduck.trust.cert=true --blackduck.api.token=NmNjYmM4ODgtZjc0Ni00NTIwLTk3NDQtMjdiNzU1ZmFiYmE0OjBjNGQyODU1LTU1MDctNDkwMC1hNzI1LTJiZDg3YWZhZjJmMQ== --blackduck.proxy.host=apac.zscaler.philips.com --blackduck.proxy.port=10015 --blackduck.proxy.ignored.hosts=blackduck.philips.com --detect.tools.excluded=BINARY_SCAN --detect.docker.image=docker.na1.hsdp.io/edi/edi-foundation-oauth2-proxy:${{ needs.Build.outputs.envoyPRTag }} --detect.blackduck.signature.scanner.local.path="C:\Users\ing07422\blackduck\tools\Black_Duck_Scan_Installation\scan.cli-2022.7.2"
       
       - name: Pull CI Docker Image
         if: github.ref == 'refs/heads/edi-foundation-integration'
         run: |
           docker login docker.na1.hsdp.io --username '${{ secrets.DOCKER_USER }}' --password '${{ secrets.DOCKER_PSWD }}'
-          docker pull ${{ needs.Build.outputs.blackduckCIImage }}
+          docker pull docker.na1.hsdp.io/edi/edi-foundation-oauth2-proxy:${{ needs.Build.outputs.envoyCITag }}
 
       - name: CI Blackduck Image Scan
         if: github.ref == 'refs/heads/edi-foundation-integration'
         run: |
-          java -jar D:\synopsys-detect-8.3.0.jar --detect.project.name=SA_edifoundation-oauth2proxy --detect.project.version.name=1.0 --blackduck.url=https://blackduck.philips.com/ --detect.go.path="C:\Program Files\Go\bin\go.exe" --blackduck.trust.cert=true --blackduck.api.token=NmNjYmM4ODgtZjc0Ni00NTIwLTk3NDQtMjdiNzU1ZmFiYmE0OjBjNGQyODU1LTU1MDctNDkwMC1hNzI1LTJiZDg3YWZhZjJmMQ== --blackduck.proxy.host=apac.zscaler.philips.com --blackduck.proxy.port=10015 --blackduck.proxy.ignored.hosts=blackduck.philips.com --detect.tools.excluded=BINARY_SCAN --detect.docker.image=${{ needs.Build.outputs.blackduckCIImage }} --detect.blackduck.signature.scanner.local.path="C:\Users\ing07422\blackduck\tools\Black_Duck_Scan_Installation\scan.cli-2022.7.2"
+          java -jar D:\synopsys-detect-8.3.0.jar --detect.project.name=SA_edifoundation-oauth2proxy --detect.project.version.name=1.0 --blackduck.url=https://blackduck.philips.com/ --detect.go.path="C:\Program Files\Go\bin\go.exe" --blackduck.trust.cert=true --blackduck.api.token=NmNjYmM4ODgtZjc0Ni00NTIwLTk3NDQtMjdiNzU1ZmFiYmE0OjBjNGQyODU1LTU1MDctNDkwMC1hNzI1LTJiZDg3YWZhZjJmMQ== --blackduck.proxy.host=apac.zscaler.philips.com --blackduck.proxy.port=10015 --blackduck.proxy.ignored.hosts=blackduck.philips.com --detect.tools.excluded=BINARY_SCAN --detect.docker.image=docker.na1.hsdp.io/edi/edi-foundation-oauth2-proxy:${{ needs.Build.outputs.envoyCITag }} --detect.blackduck.signature.scanner.local.path="C:\Users\ing07422\blackduck\tools\Black_Duck_Scan_Installation\scan.cli-2022.7.2"
 
   # PR_Deploy_Test_HDS_AUTH_GATEWAY:
   #   if: github.event_name == 'pull_request'
