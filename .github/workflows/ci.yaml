@@ -204,6 +204,7 @@ jobs:
 
       - name: CI Blackduck Image Scan
         run: |
+          cd D:\test-bs
           java -jar D:\synopsys-detect-8.3.0.jar --detect.project.name=SA_edifoundation-oauth2proxy --detect.project.version.name=1.0 --blackduck.url=https://blackduck.philips.com/ --detect.go.path="C:\Program Files\Go\bin\go.exe" --blackduck.trust.cert=true --blackduck.api.token=${{ secrets.BLACKDUCK_TOKEN }} --blackduck.proxy.host=apac.zscaler.philips.com --blackduck.proxy.port=10015 --blackduck.proxy.ignored.hosts=blackduck.philips.com --detect.tools.excluded=BINARY_SCAN --detect.docker.image=docker.na1.hsdp.io/edi/edi-foundation-oauth2-proxy:${{ needs.Build.outputs.oauth2proxyPRTag }} --detect.blackduck.signature.scanner.local.path="C:\Users\ing07422\blackduck\tools\Black_Duck_Scan_Installation\scan.cli-2022.7.2"
 
   # PR_Deploy_Test_HDS_AUTH_GATEWAY:
