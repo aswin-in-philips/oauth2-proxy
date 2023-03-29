@@ -160,43 +160,38 @@ jobs:
         echo "prTag=${pr_tag}" >> $GITHUB_OUTPUT
         echo "betaTag=${beta_tag}" >> $GITHUB_OUTPUT
         echo "${{ env.HSDP_DOCKER_REGISTRY }}/edi-foundation-oauth2-proxy:${pr_tag}" > /tmp/output.txt
-    
-    - name: Image tag
+        
+    - name: Docker Build
       run: |
-        cat /tmp/output.txt
+        make docker
         
-
-    # - name: Docker Build
-    #   run: |
-    #     make docker
+    - name: Docker login
+      run: |
+          docker login --username '${{ secrets.DOCKER_USER }}' --password '${{ secrets.DOCKER_PSWD }}'  '${{ secrets.DOCKER_REPO }}' 
         
-    # - name: Docker login
-    #   run: |
-    #       docker login --username '${{ secrets.DOCKER_USER }}' --password '${{ secrets.DOCKER_PSWD }}'  '${{ secrets.DOCKER_REPO }}' 
-        
-    # - name: Docker tag 
-    #   run: |
-    #       docker tag '${{ secrets.DOCKER_REPO }}'/oauth2-proxy:latest ${{ env.PR_IMAGE }}
+    - name: Docker tag 
+      run: |
+          docker tag '${{ secrets.DOCKER_REPO }}'/oauth2-proxy:latest ${{ env.PR_IMAGE }}
     
-    # - name: PR Image Docker Push
-    #   #if: github.event_name == 'pull_request'
-    #   run: |
-    #       docker push ${{ env.PR_IMAGE }}
+    - name: PR Image Docker Push
+      #if: github.event_name == 'pull_request'
+      run: |
+          docker push ${{ env.PR_IMAGE }}
     
-    # - name: Docker Push
-    #   if: github.ref == 'refs/heads/edi-foundation-integration'
-    #   run: |
-    #       docker tag ${{ env.PR_IMAGE }} ${{ env.CI_IMAGE }}
-    #       docker push ${{ env.CI_IMAGE }}
+    - name: Docker Push
+      if: github.ref == 'refs/heads/edi-foundation-integration'
+      run: |
+          docker tag ${{ env.PR_IMAGE }} ${{ env.CI_IMAGE }}
+          docker push ${{ env.CI_IMAGE }}
     
     
-    # - name: CI Image Artifact
-    #   if: github.ref == 'refs/heads/edi-foundation-integration'
-    #   uses: actions/upload-artifact@v2
-    #   with:
-    #     name: Image tag
-    #     path: /tmp/output.txt
-    #     if-no-files-found: error
+    - name: CI Image Artifact
+      #if: github.ref == 'refs/heads/edi-foundation-integration'
+      uses: actions/upload-artifact@v2
+      with:
+        name: Image tag
+        path: /tmp/output.txt
+        if-no-files-found: error
 
   # Blackduck:
   #   needs: [Build]
