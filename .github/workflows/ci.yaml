@@ -104,6 +104,7 @@ jobs:
         run: |
           docker login docker.na1.hsdp.io --username '${{ secrets.DOCKER_USER }}' --password '${{ secrets.DOCKER_PSWD }}'
           docker pull docker.na1.hsdp.io/edi/edi-foundation-oauth2-proxy:1.0.27-beta
+
       
       - name: Blackduck Image Scan
         run: |
