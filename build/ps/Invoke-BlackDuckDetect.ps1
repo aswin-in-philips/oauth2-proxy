@@ -1,7 +1,7 @@
 param(
     $ProjectName = "SA_edifoundation-oauth2proxy",
     $ProjectVersionName = "1.0",
-    $SourcePath,
+    $DockerImage,
     $BlackduckUrl = "https://blackduck.philips.com/",
     $ApiToken,
     $ProxyHost = "apac.zscaler.philips.com",

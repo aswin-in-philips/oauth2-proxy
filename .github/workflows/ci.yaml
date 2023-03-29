@@ -95,19 +95,13 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
       
-      - name: Set up JDK 11
-        uses: actions/setup-java@v1
-        with:
-          java-version: 11
-      
       - name: Pull docker Image
         run: |
           docker login docker.na1.hsdp.io --username '${{ secrets.DOCKER_USER }}' --password '${{ secrets.DOCKER_PSWD }}'
           docker pull docker.na1.hsdp.io/edi/edi-foundation-oauth2-proxy:1.0.27-beta
-
-      - name: Blackduck Image Scan
-        run: |
-          java -jar D:\synopsys-detect-8.3.0.jar --detect.project.name=SA_edifoundation-oauth2proxy --detect.project.version.name=1.0 --blackduck.url=https://blackduck.philips.com/ --detect.go.path="C:\Program Files\Go\bin" --blackduck.trust.cert=true --blackduck.api.token=NmNjYmM4ODgtZjc0Ni00NTIwLTk3NDQtMjdiNzU1ZmFiYmE0OjBjNGQyODU1LTU1MDctNDkwMC1hNzI1LTJiZDg3YWZhZjJmMQ== --detect.tools.excluded=BINARY_SCAN --detect.docker.image=docker.na1.hsdp.io/edi/edi-foundation-oauth2-proxy:1.0.27-beta --detect.blackduck.signature.scanner.local.path="C:\Users\ing07422\blackduck\tools\Black_Duck_Scan_Installation\scan.cli-2022.7.2"
+      
+      - name: blackduck scan
+        run: powershell -ExecutionPolicy RemoteSigned -NoExit -File ${{ github.workspace }}\Build\PS\Invoke-BlackduckDetect.ps1 -DockerImage docker.na1.hsdp.io/edi/edi-foundation-oauth2-proxy:1.0.27-beta -ApiToken ${{ secrets.BLACKDUCK_TOKEN }}
       
       
   # Fortify:
