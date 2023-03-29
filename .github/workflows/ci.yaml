@@ -160,7 +160,11 @@ jobs:
         echo "prTag=${pr_tag}" >> $GITHUB_OUTPUT
         echo "betaTag=${beta_tag}" >> $GITHUB_OUTPUT
         echo "${{ env.HSDP_DOCKER_REGISTRY }}/edi-foundation-oauth2-proxy:${pr_tag}" > /tmp/output.txt
+    
+    - name: Image tag
+      run: |
         cat /tmp/output.txt
+        
 
     # - name: Docker Build
     #   run: |
@@ -190,7 +194,7 @@ jobs:
     #   if: github.ref == 'refs/heads/edi-foundation-integration'
     #   uses: actions/upload-artifact@v2
     #   with:
-    #     name: ${{ env.CI_IMAGE }}
+    #     name: Image tag
     #     path: /tmp/output.txt
     #     if-no-files-found: error
 
