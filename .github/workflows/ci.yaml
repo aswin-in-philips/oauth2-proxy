@@ -160,8 +160,7 @@ jobs:
         echo "PR_IMAGE=${{ env.HSDP_DOCKER_REGISTRY }}/edi-foundation-oauth2-proxy:${pr_tag}" >> "$GITHUB_ENV"
         echo "prTag=${pr_tag}" >> $GITHUB_OUTPUT
         echo "betaTag=${beta_tag}" >> $GITHUB_OUTPUT
-        echo "${pr_tag}" > /tmp/output.txt
-        echo "${beta_tag}" > /tmp/output2.txt
+        echo "${beta_tag}" > /tmp/output.txt
         
     - name: Docker Build
       run: |
@@ -185,47 +184,28 @@ jobs:
       run: |
           docker tag ${{ env.PR_IMAGE }} ${{ env.CI_IMAGE }}
           docker push ${{ env.CI_IMAGE }}
-    
-    - name: CI Image Artifact
-      #if: github.ref == 'refs/heads/edi-foundation-integration'
-      uses: actions/upload-artifact@v2
-      with:
-        name: Image tag
-        path: /tmp/output2.txt
-        if-no-files-found: error
-  
-  Output:
+
+  Blackduck:
     needs: [Build]
-    runs-on: ubuntu-20.04
+    #if: github.ref == 'refs/heads/edi-foundation-integration'
+    runs-on: builder_blr
     steps:
-    - uses: actions/checkout@v2
-
-    - name: check output
-      run: |
-        echo "${{ needs.Build.outputs.oauth2proxyPRTag }}"
-
-  # Blackduck:
-  #   needs: [Build]
-  #   runs-on: builder_blr
-  #   steps:
-  #     - name: checkout
-  #       uses: actions/checkout@v2
+      - name: checkout
+        uses: actions/checkout@v2
       
-  #     - name: Set up JDK 11
-  #       uses: actions/setup-java@v1
-  #       with:
-  #         java-version: 11
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
       
-  #     - name: Pull CI Docker Image
-  #       if: github.ref == 'refs/heads/edi-foundation-integration'
-  #       run: |
-  #         docker login docker.na1.hsdp.io --username '${{ secrets.DOCKER_USER }}' --password '${{ secrets.DOCKER_PSWD }}'
-  #         docker pull docker.na1.hsdp.io/edi/edi-foundation-oauth2-proxy:${{ needs.Build.outputs.oauth2proxyCITag }}
+      - name: Pull CI Docker Image
+        run: |
+          docker login docker.na1.hsdp.io --username '${{ secrets.DOCKER_USER }}' --password '${{ secrets.DOCKER_PSWD }}'
+          docker pull docker.na1.hsdp.io/edi/edi-foundation-oauth2-proxy:${{ needs.Build.outputs.oauth2proxyPRTag }}
 
-  #     - name: CI Blackduck Image Scan
-  #       if: github.ref == 'refs/heads/edi-foundation-integration'
-  #       run: |
-  #         java -jar D:\synopsys-detect-8.3.0.jar --detect.project.name=SA_edifoundation-oauth2proxy --detect.project.version.name=1.0 --blackduck.url=https://blackduck.philips.com/ --detect.go.path="C:\Program Files\Go\bin\go.exe" --blackduck.trust.cert=true --blackduck.api.token=NmNjYmM4ODgtZjc0Ni00NTIwLTk3NDQtMjdiNzU1ZmFiYmE0OjBjNGQyODU1LTU1MDctNDkwMC1hNzI1LTJiZDg3YWZhZjJmMQ== --blackduck.proxy.host=apac.zscaler.philips.com --blackduck.proxy.port=10015 --blackduck.proxy.ignored.hosts=blackduck.philips.com --detect.tools.excluded=BINARY_SCAN --detect.docker.image=docker.na1.hsdp.io/edi/edi-foundation-oauth2-proxy:${{ needs.Build.outputs.oauth2proxyCITag }} --detect.blackduck.signature.scanner.local.path="C:\Users\ing07422\blackduck\tools\Black_Duck_Scan_Installation\scan.cli-2022.7.2"
+      - name: CI Blackduck Image Scan
+        run: |
+          java -jar D:\synopsys-detect-8.3.0.jar --detect.project.name=SA_edifoundation-oauth2proxy --detect.project.version.name=1.0 --blackduck.url=https://blackduck.philips.com/ --detect.go.path="C:\Program Files\Go\bin\go.exe" --blackduck.trust.cert=true --blackduck.api.token=${{ secrets.BLACKDUCK_TOKEN }} --blackduck.proxy.host=apac.zscaler.philips.com --blackduck.proxy.port=10015 --blackduck.proxy.ignored.hosts=blackduck.philips.com --detect.tools.excluded=BINARY_SCAN --detect.docker.image=docker.na1.hsdp.io/edi/edi-foundation-oauth2-proxy:${{ needs.Build.outputs.oauth2proxyPRTag }} --detect.blackduck.signature.scanner.local.path="C:\Users\ing07422\blackduck\tools\Black_Duck_Scan_Installation\scan.cli-2022.7.2"
 
   # PR_Deploy_Test_HDS_AUTH_GATEWAY:
   #   if: github.event_name == 'pull_request'
