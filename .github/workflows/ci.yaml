@@ -188,7 +188,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: ${{ env.PR_IMAGE }}
-        path: /tmp/output.txt
+        path: /tmp/output1.txt
         if-no-files-found: error
     
     - name: CI Image Artifact
@@ -196,7 +196,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: ${{ env.CI_IMAGE }}
-        path: /tmp/output.txt
+        path: /tmp/output2.txt
         if-no-files-found: error
 
   # Blackduck:
