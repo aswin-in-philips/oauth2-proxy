@@ -13,5 +13,5 @@ func TestMainSuite(t *testing.T) {
 	logger.SetErrOutput(GinkgoWriter)
 
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "")
+	RunSpecs(t, "Main Suite")
 }
