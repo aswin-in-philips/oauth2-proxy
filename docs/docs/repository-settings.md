@@ -48,6 +48,10 @@ These are the protection rules for the `master` and `edi-foundation-integration`
 | Allow force pushes | `Disabled` | `Disabled` | N/A |
 | Allow deletions | `Disabled` | `Disabled` | N/A |
 
+## Locked master branch
+
+The option to lock the `master` branch is enabled since no changes should be pushed to this branch except changes from the original repository `oauth2-proxy`, from which this one is forked. Pull request with changes should be pushed to the `edi-foundation-integration` branch. To pull changes from the `oauth2-proxy`, a user with admin permissions should disable the lock of the `master` branch, pull the changes from the original repository, and re-enable the lock on the master branch afterwards.
+
 ## Signed commits
 
 It was added protection for all branches (pattern: `*`, `*/*` and `edi-foundation-integration`) in order to enforce signed commits. This configuration will help avoiding pull request completion issues because it'll enforce everyone to sign the commits in every branch not only in the main branch.
