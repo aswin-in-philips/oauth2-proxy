@@ -51,3 +51,7 @@ These are the protection rules for the `master` and `edi-foundation-integration`
 ## Signed commits
 
 It was added protection for all branches (pattern: `*`, `*/*` and `edi-foundation-integration`) in order to enforce signed commits. This configuration will help avoiding pull request completion issues because it'll enforce everyone to sign the commits in every branch not only in the main branch.
+
+## Signed commits
+
+It was added protection for all branches (pattern: `*`, `*/*` and `edi-foundation-integration`) in order to enforce signed commits. This configuration will help avoiding pull request completion issues because it'll enforce everyone to sign the commits in every branch not only in the main branch.
