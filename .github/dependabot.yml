@@ -20,3 +20,12 @@ updates:
       timezone: "GMT"
     registries: '*'
     open-pull-requests-limit: 3
+
+  - package-ecosystem: "nuget"
+    directory: "/AutomationTest"
+    schedule:
+      interval: "daily"
+      time: "00:00"
+      timezone: "GMT"
+    registries: '*'
+    open-pull-requests-limit: 3
