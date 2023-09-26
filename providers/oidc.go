@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"reflect"
 	"time"
 
+	"github.com/oauth2-proxy/oauth2-proxy/v7/pkg/apis/options"
 	"github.com/oauth2-proxy/oauth2-proxy/v7/pkg/apis/sessions"
 	"github.com/oauth2-proxy/oauth2-proxy/v7/pkg/logger"
 	"github.com/oauth2-proxy/oauth2-proxy/v7/pkg/requests"
@@ -20,21 +20,49 @@ import (
 // OIDCProvider represents an OIDC based Identity Provider
 type OIDCProvider struct {
 	*ProviderData
+
+	SkipNonce bool
 }
 
 // NewOIDCProvider initiates a new OIDCProvider
-func NewOIDCProvider(p *ProviderData) *OIDCProvider {
-	p.ProviderName = "OpenID Connect"
-	return &OIDCProvider{ProviderData: p}
+func NewOIDCProvider(p *ProviderData, opts options.OIDCOptions) *OIDCProvider {
+	p.setProviderDefaults(providerDefaults{
+		name:        "OpenID Connect",
+		loginURL:    nil,
+		redeemURL:   nil,
+		profileURL:  nil,
+		validateURL: nil,
+		scope:       "",
+	})
+	p.getAuthorizationHeaderFunc = makeOIDCHeader
+
+	return &OIDCProvider{
+		ProviderData: p,
+		SkipNonce:    opts.InsecureSkipNonce,
+	}
 }
 
 var _ Provider = (*OIDCProvider)(nil)
 
+// GetLoginURL makes the LoginURL with optional nonce support
+func (p *OIDCProvider) GetLoginURL(redirectURI, state, nonce string, extraParams url.Values) string {
+	if !p.SkipNonce {
+		extraParams.Add("nonce", nonce)
+	}
+	loginURL := makeLoginURL(p.Data(), redirectURI, state, extraParams)
+	return loginURL.String()
+}
+
 // Redeem exchanges the OAuth2 authentication token for an ID token
-func (p *OIDCProvider) Redeem(ctx context.Context, redirectURL, code string) (*sessions.SessionState, error) {
+func (p *OIDCProvider) Redeem(ctx context.Context, redirectURL, code, codeVerifier string) (*sessions.SessionState, error) {
 	clientSecret, err := p.GetClientSecret()
 	if err != nil {
 		return nil, err
+	}
+
+	var opts []oauth2.AuthCodeOption
+	if codeVerifier != "" {
+		opts = append(opts, oauth2.SetAuthURLParam("code_verifier", codeVerifier))
 	}
 
 	c := oauth2.Config{
@@ -45,7 +73,7 @@ func (p *OIDCProvider) Redeem(ctx context.Context, redirectURL, code string) (*s
 		},
 		RedirectURL: redirectURL,
 	}
-	token, err := c.Exchange(ctx, code)
+	token, err := c.Exchange(ctx, code, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("token exchange failed: %v", err)
 	}
@@ -56,27 +84,13 @@ func (p *OIDCProvider) Redeem(ctx context.Context, redirectURL, code string) (*s
 // EnrichSession is called after Redeem to allow providers to enrich session fields
 // such as User, Email, Groups with provider specific API calls.
 func (p *OIDCProvider) EnrichSession(ctx context.Context, s *sessions.SessionState) error {
-	if p.IntrospectURL.String() != "" {
-		err := p.enrichFromIntrospectURL(ctx, s)
-		if err != nil {
-			logger.Errorf("Warning: Introspect URL request failed: %v", err)
-		}
+	// ToDo: Vozniak
+	// if p.IntrospectURL.String() != "" {
+	err := p.enrichFromIntrospectURL(ctx, s)
+	if err != nil {
+		logger.Errorf("Warning: Introspect URL request failed: %v", err)
 	}
-
-	if p.ProfileURL.String() == "" {
-		if s.Email == "" {
-			return errors.New("id_token did not contain an email and profileURL is not defined")
-		}
-		return nil
-	}
-
-	// Try to get missing emails or groups from a profileURL
-	if s.Email == "" || s.Groups == nil {
-		err := p.enrichFromProfileURL(ctx, s)
-		if err != nil {
-			logger.Errorf("Warning: Profile URL request failed: %v", err)
-		}
-	}
+	// }
 
 	// If a mandatory email wasn't set, error at this point.
 	if s.Email == "" {
@@ -85,37 +99,24 @@ func (p *OIDCProvider) EnrichSession(ctx context.Context, s *sessions.SessionSta
 	return nil
 }
 
-// enrichFromProfileURL enriches a session's Email & Groups via the JSON response of
-// an OIDC profile URL
-func (p *OIDCProvider) enrichFromProfileURL(ctx context.Context, s *sessions.SessionState) error {
-	respJSON, err := requests.New(p.ProfileURL.String()).
-		WithContext(ctx).
-		WithHeaders(makeOIDCHeader(s.AccessToken)).
-		Do().
-		UnmarshalJSON()
+// ValidateSession checks that the session's IDToken is still valid
+func (p *OIDCProvider) ValidateSession(ctx context.Context, s *sessions.SessionState) bool {
+	_, err := p.Verifier.Verify(ctx, s.IDToken)
 	if err != nil {
-		return err
+		logger.Errorf("id_token verification failed: %v", err)
+		return false
 	}
 
-	email, err := respJSON.Get(p.EmailClaim).String()
-	if err == nil && s.Email == "" {
-		s.Email = email
+	if p.SkipNonce {
+		return true
+	}
+	err = p.checkNonce(s)
+	if err != nil {
+		logger.Errorf("nonce verification failed: %v", err)
+		return false
 	}
 
-	if len(s.Groups) > 0 {
-		return nil
-	}
-	for _, group := range coerceArray(respJSON, p.GroupsClaim) {
-		formatted, err := formatGroup(group)
-		if err != nil {
-			logger.Errorf("Warning: unable to format group of type %s with error %s",
-				reflect.TypeOf(group), err)
-			continue
-		}
-		s.Groups = append(s.Groups, formatted)
-	}
-
-	return nil
+	return true
 }
 
 // enrichFromIntrospectURL enriches a session's claims and permissions via the JSON response of
@@ -128,7 +129,8 @@ func (p *OIDCProvider) enrichFromIntrospectURL(ctx context.Context, s *sessions.
 	params := url.Values{}
 	params.Add("token", s.AccessToken)
 	basicAuth := b64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", p.ClientID, clientSecret)))
-	result := requests.New(p.IntrospectURL.String()).
+	logger.Printf("Requesting introspect")
+	result := requests.New( /* p.IntrospectURL.String()*/ "https://iam-client-test.us-east.philips-healthsuite.com/authorize/oauth2/introspect").
 		WithContext(ctx).
 		WithMethod("POST").
 		WithBody(bytes.NewBufferString(params.Encode())).
@@ -143,15 +145,8 @@ func (p *OIDCProvider) enrichFromIntrospectURL(ctx context.Context, s *sessions.
 	return nil
 }
 
-// ValidateSession checks that the session's IDToken is still valid
-func (p *OIDCProvider) ValidateSession(ctx context.Context, s *sessions.SessionState) bool {
-	_, err := p.Verifier.Verify(ctx, s.IDToken)
-	return err == nil
-}
-
-// RefreshSessionIfNeeded checks if the session has expired and uses the
-// RefreshToken to fetch a new Access Token (and optional ID token) if required
-func (p *OIDCProvider) RefreshSessionIfNeeded(ctx context.Context, s *sessions.SessionState) (bool, error) {
+// RefreshSession uses the RefreshToken to fetch new Access and ID Tokens
+func (p *OIDCProvider) RefreshSession(ctx context.Context, s *sessions.SessionState) (bool, error) {
 	if s == nil || s.RefreshToken == "" {
 		return false, nil
 	}
@@ -161,7 +156,6 @@ func (p *OIDCProvider) RefreshSessionIfNeeded(ctx context.Context, s *sessions.S
 		return false, fmt.Errorf("unable to redeem refresh token: %v", err)
 	}
 
-	logger.Printf("refreshed session: %s", s)
 	return true, nil
 }
 
@@ -220,7 +214,7 @@ func (p *OIDCProvider) CreateSessionFromToken(ctx context.Context, token string)
 		return nil, err
 	}
 
-	ss, err := p.buildSessionFromClaims(idToken)
+	ss, err := p.buildSessionFromClaims(token, "")
 	if err != nil {
 		return nil, err
 	}
@@ -233,7 +227,9 @@ func (p *OIDCProvider) CreateSessionFromToken(ctx context.Context, token string)
 	ss.AccessToken = token
 	ss.IDToken = token
 	ss.RefreshToken = ""
-	ss.ExpiresOn = &idToken.Expiry
+
+	ss.CreatedAtNow()
+	ss.SetExpiresOn(idToken.Expiry)
 
 	return ss, nil
 }
@@ -241,7 +237,7 @@ func (p *OIDCProvider) CreateSessionFromToken(ctx context.Context, token string)
 // createSession takes an oauth2.Token and creates a SessionState from it.
 // It alters behavior if called from Redeem vs Refresh
 func (p *OIDCProvider) createSession(ctx context.Context, token *oauth2.Token, refresh bool) (*sessions.SessionState, error) {
-	idToken, err := p.verifyIDToken(ctx, token)
+	_, err := p.verifyIDToken(ctx, token)
 	if err != nil {
 		switch err {
 		case ErrMissingIDToken:
@@ -254,18 +250,18 @@ func (p *OIDCProvider) createSession(ctx context.Context, token *oauth2.Token, r
 		}
 	}
 
-	ss, err := p.buildSessionFromClaims(idToken)
+	rawIDToken := getIDToken(token)
+	ss, err := p.buildSessionFromClaims(rawIDToken, token.AccessToken)
 	if err != nil {
 		return nil, err
 	}
 
 	ss.AccessToken = token.AccessToken
 	ss.RefreshToken = token.RefreshToken
-	ss.IDToken = getIDToken(token)
+	ss.IDToken = rawIDToken
 
-	created := time.Now()
-	ss.CreatedAt = &created
-	ss.ExpiresOn = &token.Expiry
+	ss.CreatedAtNow()
+	ss.SetExpiresOn(token.Expiry)
 
 	return ss, nil
 }
