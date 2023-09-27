@@ -208,6 +208,8 @@ func TestGetCertPool(t *testing.T) {
 	certFile2 := makeTestCertFile(t, root2Cert, tempDir)
 
 	certPool, err := GetCertPool([]string{certFile1.Name(), certFile2.Name()})
+	certFile1.Close()
+	certFile2.Close()
 	assert.NoError(t, err)
 
 	cert1Block, _ := pem.Decode([]byte(cert1Cert))
