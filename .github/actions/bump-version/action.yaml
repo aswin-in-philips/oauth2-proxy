@@ -1,14 +1,6 @@
 name: Bump Version
 description: "This action bumps package version and commits to master"
 
-inputs:
-  GH_APP_ID:
-    description: GitHub app (bot) id to retrieve the token the installation token.
-    required: true
-  GH_APP_KEY_BASE64:
-    description: GitHub app (bot) private key in base64 to retrieve the installation token.
-    required: true
-
 outputs:
   version:
     description: "The version after the bump"

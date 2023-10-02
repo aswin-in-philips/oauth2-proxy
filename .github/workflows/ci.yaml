@@ -81,18 +81,19 @@ jobs:
         with:
           context: ${{ github.workspace }}
           push: false
-          tags: ${{ env.DOCKER_REPO }}:${{ github.run_id }}
+          tags: docker.eu1.hsdp.io/reporting:${{ github.run_id }}
 
       - name: Bump Version
         id: bump-version
         uses: ./.github/actions/bump-version
-        with:
-          GH_APP_ID: ${{ secrets.REP_GITHUB_APP_ID }}
-          GH_APP_KEY_BASE64: ${{ secrets.REP_GITHUB_APP_KEY_BASE64 }}
+
+      - name: Docker login
+        run: |
+          docker login --username '${{ secrets.DOCKER_USER }}' --password '${{ secrets.DOCKER_PSWD }}'  '${{ secrets.DOCKER_REPO }}'
 
       - name: Publish Docker image
         uses: docker/build-push-action@v4
         with:
           context: ${{ github.workspace }}
           push: true
-          tags: ${{ env.DOCKER_REPO }}:${{ steps.bump-version.outputs.version }}
+          tags: docker.eu1.hsdp.io/reporting:${{ steps.bump-version.outputs.version }}
