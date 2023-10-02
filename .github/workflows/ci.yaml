@@ -76,23 +76,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      # - name: Build Docker image
-      #   uses: docker/build-push-action@v4
-      #   with:
-      #     context: ${{ github.workspace }}
-      #     push: false
-      #     tags: ${{ env.DOCKER_REPO }}:${{ github.run_id }}
+      - name: Build Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ${{ github.workspace }}
+          push: false
+          tags: ${{ env.DOCKER_REPO }}:${{ github.run_id }}
 
-      # - name: Bump Version
-      #   id: bump-version
-      #   uses: philips-internal/pics-workflows/.github/actions/bump-version@v2.10
-      #   with:
-      #     GH_APP_ID: ${{ secrets.REP_GITHUB_APP_ID }}
-      #     GH_APP_KEY_BASE64: ${{ secrets.REP_GITHUB_APP_KEY_BASE64 }}
+      - name: Bump Version
+        id: bump-version
+        uses: ./.github/actions/bump-version
+        with:
+          GH_APP_ID: ${{ secrets.REP_GITHUB_APP_ID }}
+          GH_APP_KEY_BASE64: ${{ secrets.REP_GITHUB_APP_KEY_BASE64 }}
 
-      # - name: Publish Docker image
-      #   uses: docker/build-push-action@v4
-      #   with:
-      #     context: ${{ github.workspace }}
-      #     push: true
-      #     tags: ${{ env.DOCKER_REPO }}:${{ steps.bump-version.outputs.version }}
+      - name: Publish Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ${{ github.workspace }}
+          push: true
+          tags: ${{ env.DOCKER_REPO }}:${{ steps.bump-version.outputs.version }}
