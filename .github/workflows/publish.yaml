@@ -25,4 +25,4 @@ jobs:
         with:
           context: ${{ github.workspace }}
           push: true
-          tags: docker.eu1.hsdp.io/reporting:${{ github.event.release.tag_name }}
+          tags: docker.eu1.hsdp.io/reporting/oauth2-proxy:${{ github.event.release.tag_name }}
