@@ -39,7 +39,7 @@ func getAccessToken() string {
 }
 
 func newTestKeycloakOIDCSetup() (*httptest.Server, *KeycloakOIDCProvider) {
-	redeemURL, server := newOIDCServer([]byte(fmt.Sprintf(`{"email": "new@thing.com", "expires_in": 300, "access_token": "%v"}`, getAccessToken())))
+	redeemURL, server := newOIDCServer([]byte(fmt.Sprintf(`{"email": "new@thing.com", "expires_in": 300, "access_token": "%v"}`, getAccessToken())), []byte(fmt.Sprintf(`{"email": "new@thing.com", "expires_in": 300, "access_token": "%v"}`, getAccessToken())), []byte(fmt.Sprintf(`{"email": "new@thing.com", "expires_in": 300, "access_token": "%v"}`, getAccessToken())))
 	provider := newKeycloakOIDCProvider(redeemURL, options.KeycloakOptions{})
 	return server, provider
 }
@@ -49,23 +49,31 @@ func newKeycloakOIDCProvider(serverURL *url.URL, opts options.KeycloakOptions) *
 		AudienceClaims: []string{defaultAudienceClaim},
 		ClientID:       mockClientID,
 	}
+	var hostURL string
+	if serverURL == nil {
+		hostURL = "keycloak-oidc.com"
+
+	} else {
+		hostURL = serverURL.Host
+	}
+
 	p := NewKeycloakOIDCProvider(
 		&ProviderData{
 			LoginURL: &url.URL{
 				Scheme: "https",
-				Host:   "keycloak-oidc.com",
+				Host:   hostURL,
 				Path:   "/oauth/auth"},
 			RedeemURL: &url.URL{
 				Scheme: "https",
-				Host:   "keycloak-oidc.com",
-				Path:   "/oauth/token"},
+				Host:   hostURL,
+				Path:   "/login/oauth/access_token"},
 			ProfileURL: &url.URL{
 				Scheme: "https",
-				Host:   "keycloak-oidc.com",
+				Host:   hostURL,
 				Path:   "/api/v3/user"},
 			ValidateURL: &url.URL{
 				Scheme: "https",
-				Host:   "keycloak-oidc.com",
+				Host:   hostURL,
 				Path:   "/api/v3/user"},
 			Scope: "openid email profile"},
 		opts)
@@ -74,6 +82,8 @@ func newKeycloakOIDCProvider(serverURL *url.URL, opts options.KeycloakOptions) *
 		p.RedeemURL.Scheme = serverURL.Scheme
 		p.RedeemURL.Host = serverURL.Host
 	}
+
+	fmt.Println("RedeemURL was: " + p.RedeemURL.String())
 
 	keyset := DummyKeySet{}
 	p.Verifier = internaloidc.NewVerifier(oidc.NewVerifier("", keyset, &oidc.Config{
@@ -94,7 +104,7 @@ var _ = Describe("Keycloak OIDC Provider Tests", func() {
 			providerData := p.Data()
 			Expect(providerData.ProviderName).To(Equal(keycloakOIDCProviderName))
 			Expect(providerData.LoginURL.String()).To(Equal("https://keycloak-oidc.com/oauth/auth"))
-			Expect(providerData.RedeemURL.String()).To(Equal("https://keycloak-oidc.com/oauth/token"))
+			Expect(providerData.RedeemURL.String()).To(Equal("https://keycloak-oidc.com/login/oauth/access_token"))
 			Expect(providerData.ProfileURL.String()).To(Equal("https://keycloak-oidc.com/api/v3/user"))
 			Expect(providerData.ValidateURL.String()).To(Equal("https://keycloak-oidc.com/api/v3/user"))
 			Expect(providerData.Scope).To(Equal("openid email profile"))
@@ -186,6 +196,8 @@ var _ = Describe("Keycloak OIDC Provider Tests", func() {
 				User:         "already",
 				Email:        "a@b.com",
 				Groups:       nil,
+				CreatedAt:    nil,
+				ExpiresOn:    nil,
 				IDToken:      idToken,
 				AccessToken:  getAccessToken(),
 				RefreshToken: refreshToken,

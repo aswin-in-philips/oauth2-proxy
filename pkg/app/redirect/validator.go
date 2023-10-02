@@ -13,7 +13,6 @@ import (
 var (
 	// Used to check final redirects are not susceptible to open redirects.
 	// Matches //, /\ and both of these with whitespace in between (eg / / or / \).
-	// ToDo: Vozniak
 	invalidRedirectRegex = regexp.MustCompile(`^[/\\](?:[\s\v]*|\.{1,2})[/\\]`)
 )
 

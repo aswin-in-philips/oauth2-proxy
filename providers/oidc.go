@@ -84,7 +84,7 @@ func (p *OIDCProvider) Redeem(ctx context.Context, redirectURL, code, codeVerifi
 // EnrichSession is called after Redeem to allow providers to enrich session fields
 // such as User, Email, Groups with provider specific API calls.
 func (p *OIDCProvider) EnrichSession(ctx context.Context, s *sessions.SessionState) error {
-	// ToDo: Vozniak
+	// ToDo: Vozniak - is this going to break something? tests are fine.
 	// if p.IntrospectURL.String() != "" {
 	err := p.enrichFromIntrospectURL(ctx, s)
 	if err != nil {
@@ -130,7 +130,7 @@ func (p *OIDCProvider) enrichFromIntrospectURL(ctx context.Context, s *sessions.
 	params.Add("token", s.AccessToken)
 	basicAuth := b64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", p.ClientID, clientSecret)))
 	logger.Printf("Requesting introspect")
-	result := requests.New( /* p.IntrospectURL.String()*/ "https://iam-client-test.us-east.philips-healthsuite.com/authorize/oauth2/introspect").
+	result := requests.New( /* p.IntrospectURL.String() */ "https://iam-client-test.us-east.philips-healthsuite.com/authorize/oauth2/introspect").
 		WithContext(ctx).
 		WithMethod("POST").
 		WithBody(bytes.NewBufferString(params.Encode())).

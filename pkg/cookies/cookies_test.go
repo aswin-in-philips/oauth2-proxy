@@ -131,7 +131,7 @@ var _ = Describe("Cookie Tests", func() {
 			Entry("session cookie", MakeCookieFromOptionsTableInput{
 				host:  "www.cookies.test",
 				name:  validName,
-				value: "1",
+				value: "2",
 				opts: options.Cookie{
 					Name:     validName,
 					Secret:   validSecret,

@@ -73,7 +73,7 @@ func newOIDCProvider(serverURL *url.URL, skipNonce bool) *OIDCProvider {
 	return p
 }
 
-func newOIDCServer(redeemJSON []byte, profileJSON []byte, introspectJSON []byte) *httptest.Server {
+func newOIDCServer(redeemJSON []byte, profileJSON []byte, introspectJSON []byte) (*url.URL, *httptest.Server) {
 	mux := http.NewServeMux()
 	if len(redeemJSON) > 0 {
 		mux.HandleFunc("/login/oauth/access_token", func(rw http.ResponseWriter, req *http.Request) {
@@ -94,11 +94,13 @@ func newOIDCServer(redeemJSON []byte, profileJSON []byte, introspectJSON []byte)
 		})
 	}
 	testserver := httptest.NewServer(mux)
-	return testserver
+	u, _ := url.Parse(testserver.URL)
+	fmt.Println("The URL was: " + u.String())
+	return u, testserver
 }
 
 func newTestOIDCSetup(redeemJSON []byte, profileJSON []byte, introspectJSON []byte) (*httptest.Server, *OIDCProvider) {
-	server := newOIDCServer(redeemJSON, profileJSON, introspectJSON)
+	_, server := newOIDCServer(redeemJSON, profileJSON, introspectJSON)
 	serverURL, _ := url.Parse(server.URL)
 	provider := newOIDCProvider(serverURL, false)
 	return server, provider
@@ -294,3 +296,419 @@ func TestOIDCProviderCreateSessionFromToken(t *testing.T) {
 		})
 	}
 }
+
+// Vozniak
+// func TestOIDCProvider_EnrichSession(t *testing.T) {
+// 	testCases := map[string]struct {
+// 		ExistingSession *sessions.SessionState
+// 		EmailClaim      string
+// 		GroupsClaim     string
+// 		ProfileJSON     map[string]interface{}
+// 		IntrospectJSON  map[string]interface{}
+// 		ExpectedError   error
+// 		ExpectedSession *sessions.SessionState
+// 	}{
+// 		"Already Populated": {
+// 			ExistingSession: &sessions.SessionState{
+// 				User:         "already",
+// 				Email:        "already@populated.com",
+// 				Groups:       []string{"already", "populated"},
+// 				IDToken:      idToken,
+// 				AccessToken:  accessToken,
+// 				RefreshToken: refreshToken,
+// 			},
+// 			EmailClaim:  "email",
+// 			GroupsClaim: "groups",
+// 			ProfileJSON: map[string]interface{}{
+// 				"email":  "new@thing.com",
+// 				"groups": []string{"new", "thing"},
+// 			},
+// 			IntrospectJSON: map[string]interface{}{
+// 				"active": true,
+// 			},
+// 			ExpectedError: nil,
+// 			ExpectedSession: &sessions.SessionState{
+// 				User:             "already",
+// 				Email:            "already@populated.com",
+// 				Groups:           []string{"already", "populated"},
+// 				IDToken:          idToken,
+// 				AccessToken:      accessToken,
+// 				RefreshToken:     refreshToken,
+// 				IntrospectClaims: "eyJhY3RpdmUiOnRydWV9",
+// 			},
+// 		},
+// 		"Missing Email": {
+// 			ExistingSession: &sessions.SessionState{
+// 				User:         "missing.email",
+// 				Groups:       []string{"already", "populated"},
+// 				IDToken:      idToken,
+// 				AccessToken:  accessToken,
+// 				RefreshToken: refreshToken,
+// 			},
+// 			EmailClaim:  "email",
+// 			GroupsClaim: "groups",
+// 			ProfileJSON: map[string]interface{}{
+// 				"email":  "found@email.com",
+// 				"groups": []string{"new", "thing"},
+// 			},
+// 			IntrospectJSON: map[string]interface{}{
+// 				"active": true,
+// 			},
+// 			ExpectedError: nil,
+// 			ExpectedSession: &sessions.SessionState{
+// 				User:             "missing.email",
+// 				Email:            "found@email.com",
+// 				Groups:           []string{"already", "populated"},
+// 				IDToken:          idToken,
+// 				AccessToken:      accessToken,
+// 				RefreshToken:     refreshToken,
+// 				IntrospectClaims: "eyJhY3RpdmUiOnRydWV9",
+// 			},
+// 		},
+
+// 		"Missing Email Only in Profile URL": {
+// 			ExistingSession: &sessions.SessionState{
+// 				User:         "missing.email",
+// 				IDToken:      idToken,
+// 				AccessToken:  accessToken,
+// 				RefreshToken: refreshToken,
+// 			},
+// 			EmailClaim:  "email",
+// 			GroupsClaim: "groups",
+// 			ProfileJSON: map[string]interface{}{
+// 				"email": "found@email.com",
+// 			},
+// 			IntrospectJSON: map[string]interface{}{
+// 				"active": true,
+// 			},
+// 			ExpectedError: nil,
+// 			ExpectedSession: &sessions.SessionState{
+// 				User:             "missing.email",
+// 				Email:            "found@email.com",
+// 				IDToken:          idToken,
+// 				AccessToken:      accessToken,
+// 				RefreshToken:     refreshToken,
+// 				IntrospectClaims: "eyJhY3RpdmUiOnRydWV9",
+// 			},
+// 		},
+// 		"Missing Email with Custom Claim": {
+// 			ExistingSession: &sessions.SessionState{
+// 				User:         "missing.email",
+// 				Groups:       []string{"already", "populated"},
+// 				IDToken:      idToken,
+// 				AccessToken:  accessToken,
+// 				RefreshToken: refreshToken,
+// 			},
+// 			EmailClaim:  "weird",
+// 			GroupsClaim: "groups",
+// 			ProfileJSON: map[string]interface{}{
+// 				"weird":  "weird@claim.com",
+// 				"groups": []string{"new", "thing"},
+// 			},
+// 			IntrospectJSON: map[string]interface{}{
+// 				"active": true,
+// 			},
+// 			ExpectedError: nil,
+// 			ExpectedSession: &sessions.SessionState{
+// 				User:             "missing.email",
+// 				Email:            "weird@claim.com",
+// 				Groups:           []string{"already", "populated"},
+// 				IDToken:          idToken,
+// 				AccessToken:      accessToken,
+// 				RefreshToken:     refreshToken,
+// 				IntrospectClaims: "eyJhY3RpdmUiOnRydWV9",
+// 			},
+// 		},
+// 		"Missing Email not in Profile URL": {
+// 			ExistingSession: &sessions.SessionState{
+// 				User:         "missing.email",
+// 				Groups:       []string{"already", "populated"},
+// 				IDToken:      idToken,
+// 				AccessToken:  accessToken,
+// 				RefreshToken: refreshToken,
+// 			},
+// 			EmailClaim:  "email",
+// 			GroupsClaim: "groups",
+// 			ProfileJSON: map[string]interface{}{
+// 				"groups": []string{"new", "thing"},
+// 			},
+// 			IntrospectJSON: map[string]interface{}{
+// 				"active": true,
+// 			},
+// 			ExpectedError: errors.New("neither the id_token nor the profileURL set an email"),
+// 			ExpectedSession: &sessions.SessionState{
+// 				User:             "missing.email",
+// 				Groups:           []string{"already", "populated"},
+// 				IDToken:          idToken,
+// 				AccessToken:      accessToken,
+// 				RefreshToken:     refreshToken,
+// 				IntrospectClaims: "eyJhY3RpdmUiOnRydWV9",
+// 			},
+// 		},
+// 		"Missing Groups": {
+// 			ExistingSession: &sessions.SessionState{
+// 				User:         "already",
+// 				Email:        "already@populated.com",
+// 				Groups:       nil,
+// 				IDToken:      idToken,
+// 				AccessToken:  accessToken,
+// 				RefreshToken: refreshToken,
+// 			},
+// 			EmailClaim:  "email",
+// 			GroupsClaim: "groups",
+// 			ProfileJSON: map[string]interface{}{
+// 				"email":  "new@thing.com",
+// 				"groups": []string{"new", "thing"},
+// 			},
+// 			IntrospectJSON: map[string]interface{}{
+// 				"active": true,
+// 			},
+// 			ExpectedError: nil,
+// 			ExpectedSession: &sessions.SessionState{
+// 				User:             "already",
+// 				Email:            "already@populated.com",
+// 				Groups:           []string{"new", "thing"},
+// 				IDToken:          idToken,
+// 				AccessToken:      accessToken,
+// 				RefreshToken:     refreshToken,
+// 				IntrospectClaims: "eyJhY3RpdmUiOnRydWV9",
+// 			},
+// 		},
+// 		"Missing Groups with Complex Groups in Profile URL": {
+// 			ExistingSession: &sessions.SessionState{
+// 				User:         "already",
+// 				Email:        "already@populated.com",
+// 				Groups:       nil,
+// 				IDToken:      idToken,
+// 				AccessToken:  accessToken,
+// 				RefreshToken: refreshToken,
+// 			},
+// 			EmailClaim:  "email",
+// 			GroupsClaim: "groups",
+// 			ProfileJSON: map[string]interface{}{
+// 				"email": "new@thing.com",
+// 				"groups": []map[string]interface{}{
+// 					{
+// 						"groupId": "Admin Group Id",
+// 						"roles":   []string{"Admin"},
+// 					},
+// 				},
+// 			},
+// 			IntrospectJSON: map[string]interface{}{
+// 				"active": true,
+// 			},
+// 			ExpectedError: nil,
+// 			ExpectedSession: &sessions.SessionState{
+// 				User:             "already",
+// 				Email:            "already@populated.com",
+// 				Groups:           []string{"{\"groupId\":\"Admin Group Id\",\"roles\":[\"Admin\"]}"},
+// 				IDToken:          idToken,
+// 				AccessToken:      accessToken,
+// 				RefreshToken:     refreshToken,
+// 				IntrospectClaims: "eyJhY3RpdmUiOnRydWV9",
+// 			},
+// 		},
+// 		"Missing Groups with Singleton Complex Group in Profile URL": {
+// 			ExistingSession: &sessions.SessionState{
+// 				User:         "already",
+// 				Email:        "already@populated.com",
+// 				Groups:       nil,
+// 				IDToken:      idToken,
+// 				AccessToken:  accessToken,
+// 				RefreshToken: refreshToken,
+// 			},
+// 			EmailClaim:  "email",
+// 			GroupsClaim: "groups",
+// 			ProfileJSON: map[string]interface{}{
+// 				"email": "new@thing.com",
+// 				"groups": map[string]interface{}{
+// 					"groupId": "Admin Group Id",
+// 					"roles":   []string{"Admin"},
+// 				},
+// 			},
+// 			IntrospectJSON: map[string]interface{}{
+// 				"active": true,
+// 			},
+// 			ExpectedError: nil,
+// 			ExpectedSession: &sessions.SessionState{
+// 				User:             "already",
+// 				Email:            "already@populated.com",
+// 				Groups:           []string{"{\"groupId\":\"Admin Group Id\",\"roles\":[\"Admin\"]}"},
+// 				IDToken:          idToken,
+// 				AccessToken:      accessToken,
+// 				RefreshToken:     refreshToken,
+// 				IntrospectClaims: "eyJhY3RpdmUiOnRydWV9",
+// 			},
+// 		},
+// 		"Empty Groups Claims": {
+// 			ExistingSession: &sessions.SessionState{
+// 				User:         "already",
+// 				Email:        "already@populated.com",
+// 				Groups:       []string{},
+// 				IDToken:      idToken,
+// 				AccessToken:  accessToken,
+// 				RefreshToken: refreshToken,
+// 			},
+// 			EmailClaim:  "email",
+// 			GroupsClaim: "groups",
+// 			ProfileJSON: map[string]interface{}{
+// 				"email":  "new@thing.com",
+// 				"groups": []string{"new", "thing"},
+// 			},
+// 			IntrospectJSON: map[string]interface{}{
+// 				"active": true,
+// 			},
+// 			ExpectedError: nil,
+// 			ExpectedSession: &sessions.SessionState{
+// 				User:             "already",
+// 				Email:            "already@populated.com",
+// 				Groups:           []string{},
+// 				IDToken:          idToken,
+// 				AccessToken:      accessToken,
+// 				RefreshToken:     refreshToken,
+// 				IntrospectClaims: "eyJhY3RpdmUiOnRydWV9",
+// 			},
+// 		},
+// 		"Missing Groups with Custom Claim": {
+// 			ExistingSession: &sessions.SessionState{
+// 				User:         "already",
+// 				Email:        "already@populated.com",
+// 				Groups:       nil,
+// 				IDToken:      idToken,
+// 				AccessToken:  accessToken,
+// 				RefreshToken: refreshToken,
+// 			},
+// 			EmailClaim:  "email",
+// 			GroupsClaim: "roles",
+// 			ProfileJSON: map[string]interface{}{
+// 				"email": "new@thing.com",
+// 				"roles": []string{"new", "thing", "roles"},
+// 			},
+// 			IntrospectJSON: map[string]interface{}{
+// 				"active": true,
+// 			},
+// 			ExpectedError: nil,
+// 			ExpectedSession: &sessions.SessionState{
+// 				User:             "already",
+// 				Email:            "already@populated.com",
+// 				Groups:           []string{"new", "thing", "roles"},
+// 				IDToken:          idToken,
+// 				AccessToken:      accessToken,
+// 				RefreshToken:     refreshToken,
+// 				IntrospectClaims: "eyJhY3RpdmUiOnRydWV9",
+// 			},
+// 		},
+// 		"Missing Groups String Profile URL Response": {
+// 			ExistingSession: &sessions.SessionState{
+// 				User:         "already",
+// 				Email:        "already@populated.com",
+// 				Groups:       nil,
+// 				IDToken:      idToken,
+// 				AccessToken:  accessToken,
+// 				RefreshToken: refreshToken,
+// 			},
+// 			EmailClaim:  "email",
+// 			GroupsClaim: "groups",
+// 			ProfileJSON: map[string]interface{}{
+// 				"email":  "new@thing.com",
+// 				"groups": "singleton",
+// 			},
+// 			IntrospectJSON: map[string]interface{}{
+// 				"active": true,
+// 			},
+// 			ExpectedError: nil,
+// 			ExpectedSession: &sessions.SessionState{
+// 				User:             "already",
+// 				Email:            "already@populated.com",
+// 				Groups:           []string{"singleton"},
+// 				IDToken:          idToken,
+// 				AccessToken:      accessToken,
+// 				RefreshToken:     refreshToken,
+// 				IntrospectClaims: "eyJhY3RpdmUiOnRydWV9",
+// 			},
+// 		},
+// 		"Missing Groups in both Claims and Profile URL": {
+// 			ExistingSession: &sessions.SessionState{
+// 				User:         "already",
+// 				Email:        "already@populated.com",
+// 				IDToken:      idToken,
+// 				AccessToken:  accessToken,
+// 				RefreshToken: refreshToken,
+// 			},
+// 			EmailClaim:  "email",
+// 			GroupsClaim: "groups",
+// 			ProfileJSON: map[string]interface{}{
+// 				"email": "new@thing.com",
+// 			},
+// 			IntrospectJSON: map[string]interface{}{
+// 				"active": true,
+// 			},
+// 			ExpectedError: nil,
+// 			ExpectedSession: &sessions.SessionState{
+// 				User:             "already",
+// 				Email:            "already@populated.com",
+// 				IDToken:          idToken,
+// 				AccessToken:      accessToken,
+// 				RefreshToken:     refreshToken,
+// 				IntrospectClaims: "eyJhY3RpdmUiOnRydWV9",
+// 			},
+// 		},
+// 		"Introspection Response added in session": {
+// 			ExistingSession: &sessions.SessionState{
+// 				User:         "already",
+// 				Email:        "already@populated.com",
+// 				IDToken:      idToken,
+// 				AccessToken:  accessToken,
+// 				RefreshToken: refreshToken,
+// 			},
+// 			EmailClaim:  "email",
+// 			GroupsClaim: "groups",
+// 			ProfileJSON: map[string]interface{}{
+// 				"email": "new@thing.com",
+// 			},
+// 			IntrospectJSON: map[string]interface{}{
+// 				"active":     true,
+// 				"exp":        1613553280,
+// 				"iat":        1613549680,
+// 				"sub":        "00u65ah10oSUDoNd65d6",
+// 				"aud":        "0oa5t6ts1XZgPOOSA5d6",
+// 				"iss":        "https://dev.authprovider.com/oauth2/default",
+// 				"jti":        "ID.ShxppK0vysORHsr8S9GSPPRV-Dy1PFhqx3fPYwtijc0",
+// 				"token_type": "Bearer",
+// 				"at_hash":    "_1EsbE1ZpyMOLiu-VdBTlg",
+// 				"idp":        "0oa5t8x90SALHBBk85d6",
+// 				"auth_time":  1613549026,
+// 				"amr":        []string{"pwd"},
+// 			},
+// 			ExpectedError: nil,
+// 			ExpectedSession: &sessions.SessionState{
+// 				User:             "already",
+// 				Email:            "already@populated.com",
+// 				IDToken:          idToken,
+// 				AccessToken:      accessToken,
+// 				RefreshToken:     refreshToken,
+// 				IntrospectClaims: "eyJhY3RpdmUiOnRydWUsImFtciI6WyJwd2QiXSwiYXRfaGFzaCI6Il8xRXNiRTFacHlNT0xpdS1WZEJUbGciLCJhdWQiOiIwb2E1dDZ0czFYWmdQT09TQTVkNiIsImF1dGhfdGltZSI6MTYxMzU0OTAyNiwiZXhwIjoxNjEzNTUzMjgwLCJpYXQiOjE2MTM1NDk2ODAsImlkcCI6IjBvYTV0OHg5MFNBTEhCQms4NWQ2IiwiaXNzIjoiaHR0cHM6Ly9kZXYuYXV0aHByb3ZpZGVyLmNvbS9vYXV0aDIvZGVmYXVsdCIsImp0aSI6IklELlNoeHBwSzB2eXNPUkhzcjhTOUdTUFBSVi1EeTFQRmhxeDNmUFl3dGlqYzAiLCJzdWIiOiIwMHU2NWFoMTBvU1VEb05kNjVkNiIsInRva2VuX3R5cGUiOiJCZWFyZXIifQ==",
+// 			},
+// 		},
+// 	}
+// 	for testName, tc := range testCases {
+// 		t.Run(testName, func(t *testing.T) {
+// 			profileJSON, err := json.Marshal(tc.ProfileJSON)
+// 			assert.NoError(t, err)
+
+// 			introspectJSON, err := json.Marshal(tc.IntrospectJSON)
+// 			assert.NoError(t, err)
+
+// 			server, provider := newTestOIDCSetup([]byte(`{}`), profileJSON, introspectJSON)
+// 			assert.NoError(t, err)
+
+// 			provider.EmailClaim = tc.EmailClaim
+// 			provider.GroupsClaim = tc.GroupsClaim
+// 			defer server.Close()
+
+// 			err = provider.EnrichSession(context.Background(), tc.ExistingSession)
+// 			assert.Equal(t, tc.ExpectedError, err)
+// 			assert.Equal(t, *tc.ExpectedSession, *tc.ExistingSession)
+// 		})
+// 	}
+// }
