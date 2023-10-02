@@ -19,7 +19,7 @@ on:
 
 jobs:
   Lint:
-    name: lint
+    name: Lint - golangci-lint
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
@@ -33,7 +33,7 @@ jobs:
           version: v1.54
 
   Tests:
-    needs: [Lint]
+    name: Tests - Executing unit tests
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -66,7 +66,8 @@ jobs:
           make test
 
   Build:
-    needs: [Tests]
+    needs: [Tests, Lint]
+    name: Build - Building and publishig Docker images
     runs-on: ubuntu-22.04
     outputs:
       oauth2proxyPRTag: ${{ steps.setVariables.outputs.prTag }}

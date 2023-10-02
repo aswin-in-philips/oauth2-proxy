@@ -88,11 +88,11 @@ verify-generate: generate
 	git diff --exit-code
 
 .PHONY: test
-test: lint
+test:
 	GO111MODULE=on $(GO) test $(TESTCOVER) -v ./...
 
 .PHONY: release
-release: validate-go-version lint test
+release: validate-go-version test
 	BINARY=${BINARY} VERSION=${VERSION} ./dist.sh
 
 .PHONY: validate-go-version
