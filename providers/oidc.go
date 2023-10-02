@@ -85,12 +85,12 @@ func (p *OIDCProvider) Redeem(ctx context.Context, redirectURL, code, codeVerifi
 // such as User, Email, Groups with provider specific API calls.
 func (p *OIDCProvider) EnrichSession(ctx context.Context, s *sessions.SessionState) error {
 	// ToDo: Vozniak - is this going to break something? tests are fine.
-	// if p.IntrospectURL.String() != "" {
-	err := p.enrichFromIntrospectURL(ctx, s)
-	if err != nil {
-		logger.Errorf("Warning: Introspect URL request failed: %v", err)
+	if p != nil && p.IntrospectURL != nil && p.IntrospectURL.String() != "" {
+		err := p.enrichFromIntrospectURL(ctx, s)
+		if err != nil {
+			logger.Errorf("Warning: Introspect URL request failed: %v", err)
+		}
 	}
-	// }
 
 	// If a mandatory email wasn't set, error at this point.
 	if s.Email == "" {
