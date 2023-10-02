@@ -15,6 +15,15 @@ on:
 
   pull_request:
     branches: [pics]
+    paths-ignore:
+      - "docs/**"
+      - "VERSION"
+      - ".bumpversion.cfg"
+      - "**.md"
+      - "catalog-info.yaml"
+      - "mkdocs.yml"
+      - "philips-repo.yaml"
+
   workflow_dispatch:
 
 jobs:
@@ -85,9 +94,12 @@ jobs:
 
   Bump-version:
     runs-on: ubuntu-22.04
-    name: Publish to docker repository
+    name: Bumping the version
     needs: [Build]
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -116,6 +128,9 @@ jobs:
     name: Publish to docker repository
     needs: [Bump-version]
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
       - name: Docker login
         run: |
           docker login --username '${{ secrets.DOCKER_USER }}' --password '${{ secrets.DOCKER_PSWD }}'  '${{ secrets.DOCKER_REPO }}'
