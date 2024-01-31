@@ -48,6 +48,9 @@ type StoredSessionLoaderOptions struct {
 	// If the sesssion is older than `RefreshPeriod` but the provider doesn't
 	// refresh it, we must re-validate using this validation.
 	ValidateSession func(context.Context, *sessionsapi.SessionState) bool
+
+	// Callback that is called when a session is refreshed
+	OnSessionRefreshed *func(context.Context, *http.Request, *sessionsapi.SessionState)
 }
 
 // NewStoredSessionLoader creates a new storedSessionLoader which loads

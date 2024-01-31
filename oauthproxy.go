@@ -393,6 +393,9 @@ func buildSessionChain(opts *options.Options, provider providers.Provider, sessi
 		ValidateSession: provider.ValidateSession,
 	}))
 
+	x := opts.Providers[0]
+	chain = chain.Append(middleware.NewCookieRefresh(&middleware.CookieRefreshOptions{IssuerURL: x.OIDCConfig.IssuerURL}))
+
 	return chain
 }
 

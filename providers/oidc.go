@@ -159,6 +159,7 @@ func (p *OIDCProvider) RefreshSession(ctx context.Context, s *sessions.SessionSt
 	if err != nil {
 		return false, fmt.Errorf("unable to redeem refresh token: %v", err)
 	}
+	s.SessionJustRefreshed = true
 
 	return true, nil
 }
