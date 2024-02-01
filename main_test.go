@@ -77,6 +77,7 @@ providers:
     insecureSkipNonce: true
     audienceClaims: [aud]
     extraAudiences: []
+    cookieRefreshName: 'hsdpamcookie'
   loginURLParameters:
   - name: approval_prompt
     default:
@@ -151,14 +152,13 @@ redirect_url="http://localhost:4180/oauth2/callback"
 					Tenant: "common",
 				},
 				OIDCConfig: options.OIDCOptions{
-					GroupsClaim:         "groups",
-					EmailClaim:          "email",
-					UserIDClaim:         "email",
-					AudienceClaims:      []string{"aud"},
-					ExtraAudiences:      []string{},
-					InsecureSkipNonce:   true,
-					EnableCookieRefresh: false,
-					CookieRefreshName:   "hsdpamcookie",
+					GroupsClaim:       "groups",
+					EmailClaim:        "email",
+					UserIDClaim:       "email",
+					AudienceClaims:    []string{"aud"},
+					ExtraAudiences:    []string{},
+					InsecureSkipNonce: true,
+					CookieRefreshName: "hsdpamcookie",
 				},
 				LoginURLParameters: []options.LoginURLParameter{
 					{Name: "approval_prompt", Default: []string{"force"}},
