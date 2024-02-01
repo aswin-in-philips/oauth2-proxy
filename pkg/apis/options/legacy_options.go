@@ -543,6 +543,8 @@ type LegacyProvider struct {
 	OIDCGroupsClaim                    string   `flag:"oidc-groups-claim" cfg:"oidc_groups_claim"`
 	OIDCAudienceClaims                 []string `flag:"oidc-audience-claim" cfg:"oidc_audience_claims"`
 	OIDCExtraAudiences                 []string `flag:"oidc-extra-audience" cfg:"oidc_extra_audiences"`
+	OIDCEnableCookieRefresh            bool     `flag:"oidc-enable-cookie-refresh" cfg:"oidc_enable_cookie_refresh"`
+	OIDCCookieRefreshName              string   `flag:"oidc-cookie-refresh-name" cfg:"oidc_cookie_refresh_name"`
 	LoginURL                           string   `flag:"login-url" cfg:"login_url"`
 	RedeemURL                          string   `flag:"redeem-url" cfg:"redeem_url"`
 	ProfileURL                         string   `flag:"profile-url" cfg:"profile_url"`
@@ -601,6 +603,8 @@ func legacyProviderFlagSet() *pflag.FlagSet {
 	flagSet.String("oidc-email-claim", OIDCEmailClaim, "which OIDC claim contains the user's email")
 	flagSet.StringSlice("oidc-audience-claim", OIDCAudienceClaims, "which OIDC claims are used as audience to verify against client id")
 	flagSet.StringSlice("oidc-extra-audience", []string{}, "additional audiences allowed to pass audience verification")
+	flagSet.Bool("oidc-enable-cookie-refresh", false, "Refresh the OIDC provider cookies to enable SSO in an extended period of time")
+	flagSet.String("oidc-cookie-refresh-name", "hsdpamcookie", "The name of the cookie that the OIDC provider uses to keep its session fresh")
 	flagSet.String("login-url", "", "Authentication endpoint")
 	flagSet.String("redeem-url", "", "Token redemption endpoint")
 	flagSet.String("profile-url", "", "Profile access endpoint")
@@ -702,6 +706,8 @@ func (l *LegacyProvider) convert() (Providers, error) {
 		GroupsClaim:                    l.OIDCGroupsClaim,
 		AudienceClaims:                 l.OIDCAudienceClaims,
 		ExtraAudiences:                 l.OIDCExtraAudiences,
+		EnableCookieRefresh:            l.OIDCEnableCookieRefresh,
+		CookieRefreshName:              l.OIDCCookieRefreshName,
 	}
 
 	// Support for legacy configuration option

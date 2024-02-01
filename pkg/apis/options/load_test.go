@@ -44,6 +44,7 @@ var _ = Describe("Load", func() {
 			OIDCGroupsClaim:       "groups",
 			OIDCAudienceClaims:    []string{"aud"},
 			InsecureOIDCSkipNonce: true,
+			OIDCCookieRefreshName: "hsdpamcookie",
 		},
 
 		Options: Options{

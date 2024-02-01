@@ -77,6 +77,7 @@ providers:
     insecureSkipNonce: true
     audienceClaims: [aud]
     extraAudiences: []
+    cookieRefreshName: 'hsdpamcookie'
   loginURLParameters:
   - name: approval_prompt
     default:
@@ -157,6 +158,7 @@ redirect_url="http://localhost:4180/oauth2/callback"
 					AudienceClaims:    []string{"aud"},
 					ExtraAudiences:    []string{},
 					InsecureSkipNonce: true,
+					CookieRefreshName: "hsdpamcookie",
 				},
 				LoginURLParameters: []options.LoginURLParameter{
 					{Name: "approval_prompt", Default: []string{"force"}},

@@ -230,6 +230,10 @@ type OIDCOptions struct {
 	// ExtraAudiences is a list of additional audiences that are allowed
 	// to pass verification in addition to the client id.
 	ExtraAudiences []string `json:"extraAudiences,omitempty"`
+	// Enable cookie refresh functionality that is going to be triggered every time the session is updated
+	EnableCookieRefresh bool `json:"enableCookieRefresh,omitempty"`
+	// Name of the cookie that is going to be extracted from the request and refreshed
+	CookieRefreshName string `json:"cookieRefreshName,omitempty"`
 }
 
 type LoginGovOptions struct {
