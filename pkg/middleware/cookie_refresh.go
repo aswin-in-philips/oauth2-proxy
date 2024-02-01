@@ -16,14 +16,14 @@ type CookieRefreshOptions struct {
 
 func NewCookieRefresh(opts *CookieRefreshOptions) alice.Constructor {
 	cr := &cookieRefresh{
-		HttpClient: &http.Client{},
+		HTTPClient: &http.Client{},
 		IssuerURL:  opts.IssuerURL,
 	}
 	return cr.refreshCookie
 }
 
 type cookieRefresh struct {
-	HttpClient *http.Client
+	HTTPClient *http.Client
 	IssuerURL  string
 }
 
@@ -51,10 +51,9 @@ func (cr *cookieRefresh) refreshCookie(next http.Handler) http.Handler {
 			bodyString := string(resp.Body())
 			logger.Errorf("SSO Cookie Refresher - Could not refresh the 'hsdpamcookie' cookie due to status and content: %v - %v", resp.StatusCode(), bodyString)
 			return
-		} else {
-			logger.Print("SSO Cookie Refresher - Cookie 'hsdpamcookie' refreshed")
 		}
 
+		logger.Print("SSO Cookie Refresher - Cookie 'hsdpamcookie' refreshed")
 		next.ServeHTTP(rw, req)
 	})
 }
