@@ -11,20 +11,23 @@ import (
 )
 
 type CookieRefreshOptions struct {
-	IssuerURL string
+	IssuerURL         string
+	CookieRefreshName string
 }
 
 func NewCookieRefresh(opts *CookieRefreshOptions) alice.Constructor {
 	cr := &cookieRefresh{
-		HTTPClient: &http.Client{},
-		IssuerURL:  opts.IssuerURL,
+		HTTPClient:        &http.Client{},
+		IssuerURL:         opts.IssuerURL,
+		CookieRefreshName: opts.CookieRefreshName,
 	}
 	return cr.refreshCookie
 }
 
 type cookieRefresh struct {
-	HTTPClient *http.Client
-	IssuerURL  string
+	HTTPClient        *http.Client
+	IssuerURL         string
+	CookieRefreshName string
 }
 
 func (cr *cookieRefresh) refreshCookie(next http.Handler) http.Handler {
@@ -35,25 +38,25 @@ func (cr *cookieRefresh) refreshCookie(next http.Handler) http.Handler {
 			return
 		}
 
-		cookie, err := req.Cookie("hsdpamcookie")
+		cookie, err := req.Cookie(cr.CookieRefreshName)
 		if err != nil {
-			logger.Errorf("SSO Cookie Refresher - Could find 'hsdpamcookie' cookie in the request: %v", err)
+			logger.Errorf("SSO Cookie Refresher - Could find '%s' cookie in the request: %v", cr.CookieRefreshName, err)
 			return
 		}
 		resp := requests.New(fmt.Sprintf("%s/session/refresh", cr.IssuerURL)).
 			WithContext(req.Context()).
 			WithMethod("GET").
 			SetHeader("api-version", "1").
-			SetHeader("Cookie", fmt.Sprintf("hsdpamcookie=%s", cookie.Value)).
+			SetHeader("Cookie", fmt.Sprintf("%s=%s", cr.CookieRefreshName, cookie.Value)).
 			Do()
 
 		if resp.StatusCode() != http.StatusNoContent {
 			bodyString := string(resp.Body())
-			logger.Errorf("SSO Cookie Refresher - Could not refresh the 'hsdpamcookie' cookie due to status and content: %v - %v", resp.StatusCode(), bodyString)
+			logger.Errorf("SSO Cookie Refresher - Could not refresh the '%s' cookie due to status and content: %v - %v", cr.CookieRefreshName, resp.StatusCode(), bodyString)
 			return
 		}
 
-		logger.Print("SSO Cookie Refresher - Cookie 'hsdpamcookie' refreshed")
+		logger.Printf("SSO Cookie Refresher - Cookie '%s' refreshed", cr.CookieRefreshName)
 		next.ServeHTTP(rw, req)
 	})
 }
