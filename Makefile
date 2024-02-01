@@ -116,3 +116,7 @@ validate-go-version:
 .PHONY: local-env-%
 local-env-%:
 	make -C contrib/local-environment $*
+
+.PHONY: local-debug-build
+local-debug-build:
+	go build -gcflags="all=-N -l" -o app.exe
