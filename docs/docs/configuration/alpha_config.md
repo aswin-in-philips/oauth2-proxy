@@ -388,6 +388,8 @@ character.
 | `userIDClaim` | _string_ | UserIDClaim indicates which claim contains the user ID<br/>default set to 'email' |
 | `audienceClaims` | _[]string_ | AudienceClaim allows to define any claim that is verified against the client id<br/>By default `aud` claim is used for verification. |
 | `extraAudiences` | _[]string_ | ExtraAudiences is a list of additional audiences that are allowed<br/>to pass verification in addition to the client id. |
+| `enableCookieRefresh` | _bool_ | Enable cookie refresh functionality that is going to be triggered every time the session is updated |
+| `cookieRefreshName` | _string_ | Name of the cookie that is going to be extracted from the request and refreshed |
 
 ### Provider
 
