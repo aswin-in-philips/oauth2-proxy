@@ -710,6 +710,7 @@ func (l *LegacyProvider) convert() (Providers, error) {
 		ExtraAudiences:                 l.OIDCExtraAudiences,
 		EnableCookieRefresh:            l.OIDCEnableCookieRefresh,
 		CookieRefreshName:              l.OIDCCookieRefreshName,
+		CookieRefreshURL:               l.OIDCCookieRefreshURL,
 	}
 
 	// Support for legacy configuration option
