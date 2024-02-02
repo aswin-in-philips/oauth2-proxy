@@ -390,6 +390,7 @@ character.
 | `extraAudiences` | _[]string_ | ExtraAudiences is a list of additional audiences that are allowed<br/>to pass verification in addition to the client id. |
 | `enableCookieRefresh` | _bool_ | Enable cookie refresh functionality that is going to be triggered every time the session is updated |
 | `cookieRefreshName` | _string_ | Name of the cookie that is going to be extracted from the request and refreshed |
+| `cookieRefreshURL` | _string_ | Url that is going to be used to refresh the cookie |
 
 ### Provider
 

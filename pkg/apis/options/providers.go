@@ -234,6 +234,8 @@ type OIDCOptions struct {
 	EnableCookieRefresh bool `json:"enableCookieRefresh,omitempty"`
 	// Name of the cookie that is going to be extracted from the request and refreshed
 	CookieRefreshName string `json:"cookieRefreshName,omitempty"`
+	// Url that is going to be used to refresh the cookie
+	CookieRefreshURL string `json:"cookieRefreshURL,omitempty"`
 }
 
 type LoginGovOptions struct {

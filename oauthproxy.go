@@ -395,8 +395,11 @@ func buildSessionChain(opts *options.Options, provider providers.Provider, sessi
 
 	oidcProviderSettings := opts.Providers[0].OIDCConfig
 	if oidcProviderSettings.EnableCookieRefresh {
-		chain = chain.Append(middleware.NewCookieRefresh(&middleware.CookieRefreshOptions{IssuerURL: oidcProviderSettings.IssuerURL, CookieRefreshName: oidcProviderSettings.CookieRefreshName}))
-		logger.Printf("Enabling OIDC cookie refresh for the cookie '%s' functionality because OIDCEnableCookieRefresh is enabled", oidcProviderSettings.CookieRefreshName)
+		if oidcProviderSettings.CookieRefreshURL == "" {
+			oidcProviderSettings.CookieRefreshURL = fmt.Sprintf("%s/session/refresh", oidcProviderSettings.IssuerURL)
+		}
+		chain = chain.Append(middleware.NewCookieRefresh(&middleware.CookieRefreshOptions{CookieRefreshURL: oidcProviderSettings.CookieRefreshURL, CookieRefreshName: oidcProviderSettings.CookieRefreshName}))
+		logger.Printf("Enabling OIDC cookie refresh functionality for the cookie '%s' using the url '%s' because OIDCEnableCookieRefresh is enabled", oidcProviderSettings.CookieRefreshURL, oidcProviderSettings.CookieRefreshName)
 	}
 
 	return chain

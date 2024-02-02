@@ -545,6 +545,7 @@ type LegacyProvider struct {
 	OIDCExtraAudiences                 []string `flag:"oidc-extra-audience" cfg:"oidc_extra_audiences"`
 	OIDCEnableCookieRefresh            bool     `flag:"oidc-enable-cookie-refresh" cfg:"oidc_enable_cookie_refresh"`
 	OIDCCookieRefreshName              string   `flag:"oidc-cookie-refresh-name" cfg:"oidc_cookie_refresh_name"`
+	OIDCCookieRefreshURL               string   `flag:"oidc-cookie-refresh-url" cfg:"oidc_cookie_refresh_url"`
 	LoginURL                           string   `flag:"login-url" cfg:"login_url"`
 	RedeemURL                          string   `flag:"redeem-url" cfg:"redeem_url"`
 	ProfileURL                         string   `flag:"profile-url" cfg:"profile_url"`
@@ -605,6 +606,7 @@ func legacyProviderFlagSet() *pflag.FlagSet {
 	flagSet.StringSlice("oidc-extra-audience", []string{}, "additional audiences allowed to pass audience verification")
 	flagSet.Bool("oidc-enable-cookie-refresh", false, "Refresh the OIDC provider cookies to enable SSO in an extended period of time")
 	flagSet.String("oidc-cookie-refresh-name", "hsdpamcookie", "The name of the cookie that the OIDC provider uses to keep its session fresh")
+	flagSet.String("oidc-cookie-refresh-url", "", "The URL that is going to be used to refresh the cookie")
 	flagSet.String("login-url", "", "Authentication endpoint")
 	flagSet.String("redeem-url", "", "Token redemption endpoint")
 	flagSet.String("profile-url", "", "Profile access endpoint")
@@ -708,6 +710,7 @@ func (l *LegacyProvider) convert() (Providers, error) {
 		ExtraAudiences:                 l.OIDCExtraAudiences,
 		EnableCookieRefresh:            l.OIDCEnableCookieRefresh,
 		CookieRefreshName:              l.OIDCCookieRefreshName,
+		CookieRefreshURL:               l.OIDCCookieRefreshURL,
 	}
 
 	// Support for legacy configuration option

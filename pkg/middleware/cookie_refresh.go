@@ -11,23 +11,23 @@ import (
 )
 
 type CookieRefreshOptions struct {
-	IssuerURL         string
 	CookieRefreshName string
+	CookieRefreshURL  string
 }
 
 func NewCookieRefresh(opts *CookieRefreshOptions) alice.Constructor {
 	cr := &cookieRefresh{
 		HTTPClient:        &http.Client{},
-		IssuerURL:         opts.IssuerURL,
 		CookieRefreshName: opts.CookieRefreshName,
+		CookieRefreshURL:  opts.CookieRefreshURL,
 	}
 	return cr.refreshCookie
 }
 
 type cookieRefresh struct {
 	HTTPClient        *http.Client
-	IssuerURL         string
 	CookieRefreshName string
+	CookieRefreshURL  string
 }
 
 func (cr *cookieRefresh) refreshCookie(next http.Handler) http.Handler {
@@ -43,7 +43,7 @@ func (cr *cookieRefresh) refreshCookie(next http.Handler) http.Handler {
 			logger.Errorf("SSO Cookie Refresher - Could find '%s' cookie in the request: %v", cr.CookieRefreshName, err)
 			return
 		}
-		resp := requests.New(fmt.Sprintf("%s/session/refresh", cr.IssuerURL)).
+		resp := requests.New(cr.CookieRefreshURL).
 			WithContext(req.Context()).
 			WithMethod("GET").
 			SetHeader("api-version", "1").
@@ -52,7 +52,7 @@ func (cr *cookieRefresh) refreshCookie(next http.Handler) http.Handler {
 
 		if resp.StatusCode() != http.StatusNoContent {
 			bodyString := string(resp.Body())
-			logger.Errorf("SSO Cookie Refresher - Could not refresh the '%s' cookie due to status and content: %v - %v", cr.CookieRefreshName, resp.StatusCode(), bodyString)
+			logger.Errorf("SSO Cookie Refresher - Could not refresh the '%s' cookie in the url '%s' due to status and content: %v - %v", cr.CookieRefreshName, cr.CookieRefreshURL, resp.StatusCode(), bodyString)
 			return
 		}
 
