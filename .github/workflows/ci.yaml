@@ -1,13 +1,6 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - 'blackduck-image'
-      # - $default-branch
-    paths-ignore:
-    - 'VERSION'
-    - '.bumpversion.cfg'
   pull_request:
     branches: [ edi-foundation-integration ]
   workflow_dispatch:
@@ -107,7 +100,7 @@ jobs:
       
       - name: Blackduck Image Scan
         run: |
-          java -jar D:\synopsys-detect-8.3.0.jar --detect.project.name=SA_edifoundation-oauth2proxy --detect.project.version.name=1.0 --blackduck.url=https://blackduck.philips.com/ --blackduck.trust.cert=true --blackduck.api.token="" --detect.tools.excluded=BINARY_SCAN --detect.docker.image=docker.na1.hsdp.io/edi/edi-foundation-oauth2-proxy:1.0.27-beta
+          java -jar D:\synopsys-detect-8.3.0.jar --detect.project.name=SA_edifoundation-oauth2proxy --detect.project.version.name=1.0 --blackduck.url=https://blackduck.philips.com/ --blackduck.trust.cert=true --blackduck.api.token="" #removesecret --detect.tools.excluded=BINARY_SCAN --detect.docker.image=docker.na1.hsdp.io/edi/edi-foundation-oauth2-proxy:1.0.27-beta
       
       
   # Fortify:
